@@ -8,8 +8,118 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model bravo {
-  id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  message    String?  @db.VarChar
+model Run {
+  id               String    @id @default(uuid())
+  app_id           String
+  startEpoch       DateTime  @map("start_epoch_ms") @db.Timestamptz(6)
+  endEpoch         DateTime  @map("end_epoch_ms") @db.Timestamptz(6)
+  nikeLastModified DateTime  @map("nike_last_modified") @db.Timestamptz(6)
+  activeDurationMs BigInt    @map("active_duration_ms")
+  deleteIndicator  Boolean   @map("delete_indicator")
+  session          Boolean
+  summaries        Summary[]
+  change_tokens    String[]
+  sources          String[]
+  tags             Tag[]
+  metrics          Metric[]
+  moments          Moment[]
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+}
+
+model Summary {
+  id         Int        @id @default(autoincrement())
+  runId      String     @map("run_id")
+  metricType MetricType @map("metric_type")
+  summary    String?
+  source     String
+  appId      String     @map("app_id")
+  value      Float
+  Run        Run        @relation(fields: [runId], references: [id])
+}
+
+enum Terrain {
+  road
+  trail
+  track
+  unknown
+}
+
+model Tag {
+  id                  String  @id @default(uuid())
+  run                 Run     @relation(fields: [runId], references: [id])
+  runId               String
+  name                String  @map("name")
+  goalType            String  @map("goal_type")
+  originalActivityId  String  @map("original_activity_id")
+  recordingAppVersion String  @map("recording_app_version")
+  recordingSource     String  @map("recording_source")
+  syncAppVersion      String  @map("sync_app_version")
+  syncSource          String  @map("sync_source")
+  temperature         Float
+  weather             String
+  location            String
+  note                String
+  rpe                 Int
+  shoeId              String  @map("shoe_id")
+  terrain             Terrain
+}
+
+enum MetricType {
+  elevation
+  distance
+  pace
+  latitude
+  heart_rate
+  calories
+  steps
+  nikefuel
+  speed
+  descent
+  ascent
+  longitude
+  horizontal_accuracy
+  vertical_accuracy
+  stars
+  rpe
+}
+
+enum Units {
+  KM
+  STEP
+  KCAL
+  KMH
+  MKM
+  BPM
+  M
+  DD
+  FUEL
+  STAR
+  RATING
+}
+
+model Metric {
+  id     Int        @id @default(autoincrement())
+  runId  String     @map("run_id")
+  type   MetricType
+  unit   Units
+  source String
+  values Json
+
+  Run Run @relation(fields: [runId], references: [id])
+
+  @@index([runId])
+}
+
+model Moment {
+  id        Int      @id @default(autoincrement())
+  runId     String   @map("run_id")
+  key       String
+  value     String
+  timestamp DateTime @db.Timestamptz(6)
+  source    String
+
+  Run Run @relation(fields: [runId], references: [id])
+
+  @@index([runId])
 }
