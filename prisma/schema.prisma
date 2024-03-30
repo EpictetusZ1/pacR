@@ -20,11 +20,12 @@ model Run {
   summaries        Summary[]
   change_tokens    String[]
   sources          String[]
-  tags             Tag[]
+  tags             Tags      @relation(fields: [tagId], references: [id])
   metrics          Metric[]
   moments          Moment[]
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tagId            String
 }
 
 model Summary {
@@ -43,26 +44,26 @@ enum Terrain {
   trail
   track
   unknown
+  treadmill
 }
 
-model Tag {
-  id                  String  @id @default(uuid())
-  run                 Run     @relation(fields: [runId], references: [id])
-  runId               String
-  name                String  @map("name")
-  goalType            String  @map("goal_type")
-  originalActivityId  String  @map("original_activity_id")
-  recordingAppVersion String  @map("recording_app_version")
-  recordingSource     String  @map("recording_source")
-  syncAppVersion      String  @map("sync_app_version")
-  syncSource          String  @map("sync_source")
-  temperature         Float
-  weather             String
-  location            String
-  note                String
-  rpe                 Int
-  shoeId              String  @map("shoe_id")
-  terrain             Terrain
+model Tags {
+  id                  String   @id @default(uuid())
+  name                String?  @map("name")
+  goalType            String?  @map("goal_type")
+  originalActivityId  String?  @map("original_activity_id")
+  recordingAppVersion String?  @map("recording_app_version")
+  recordingSource     String?  @map("recording_source")
+  syncAppVersion      String?  @map("sync_app_version")
+  syncSource          String?  @map("sync_source")
+  temperature         Float?
+  weather             String?
+  location            String?  @default("outdoors")
+  note                String?
+  rpe                 Int? // probably stands for Rate of Perceived Exertion
+  shoeId              String?  @map("shoe_id")
+  terrain             Terrain? @default(unknown)
+  Run                 Run[]
 }
 
 enum MetricType {

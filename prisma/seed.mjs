@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
-const directoryPath = "{path to directory with json files}"
+const directoryPath = "/Users/vermilion/Documents/PacR/Ref/"
 
 const readJsonFiles = (dir) => {
     return fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => {
@@ -9,6 +9,12 @@ const readJsonFiles = (dir) => {
     })
 }
 
+const Terrain = {
+    road:'road',
+    trail : 'trail',
+    track : 'track',
+    unknown : 'unknown'
+}
 const seed = async () => {
     const prisma = new PrismaClient()
     const runs = readJsonFiles(directoryPath)
@@ -31,7 +37,26 @@ const seed = async () => {
                     source: summary.source,
                     appId: summary.app_id,
                     value: summary.value,
+
                 })),
+            },
+            tags: {
+                create: {
+                    name: run.tags["com.nike.name"],
+                    goalType: run.tags["com.nike.running.goaltype"],
+                    originalActivityId: run.tags["com.nike.running.originalactivityid"],
+                    recordingAppVersion: run.tags["com.nike.running.recordingappversion"],
+                    recordingSource: run.tags["com.nike.running.recordingsource"],
+                    syncAppVersion: run.tags["com.nike.running.syncappversion"],
+                    syncSource: run.tags["com.nike.running.syncsource"],
+                    temperature: parseFloat(run.tags["com.nike.temperature"]),
+                    weather: run.tags["com.nike.weather"],
+                    location: run.tags["location"],
+                    note: run.tags["note"] ? run.tags["note"] : null,
+                    rpe: parseInt(run.tags["rpe"]),
+                    shoeId: run.tags["shoe_id"],
+                    terrain: run.tags["terrain"] ? run.tags["terrain"].toLowerCase() : Terrain.unknown,
+                },
             },
             moments: {
                 create: run.moments.map(moment => ({
@@ -43,10 +68,10 @@ const seed = async () => {
             },
             metrics: {
                 create: run.metrics.map(metric => ({
-                        type: metric.type,
-                        unit: metric.unit.toUpperCase(),
-                        source: metric.source,
-                        values: metric.values,
+                    type: metric.type,
+                    unit: metric.unit.toUpperCase(),
+                    source: metric.source,
+                    values: metric.values,
                 })),
             },
         }
