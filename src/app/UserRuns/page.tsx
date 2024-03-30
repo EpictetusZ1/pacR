@@ -1,11 +1,12 @@
 import { prisma } from "../../../prisma";
 import RunTable from "@/components/RunTable/RunTable";
+import { Run } from "@prisma/client";
 
 async function getUserRuns() {
     const res = prisma.run.findMany({
         include: {
             summaries: true,
-            tags: true
+            tags: true,
         }
     })
 
@@ -125,7 +126,7 @@ const test = {
         'com.nike.nikefuelengine.1.0-A5.0'
     ],
     startEpoch: new Date('Fri Oct 27 2023 16:00:18 GMT-0400 (Eastern Daylight Time)'),
-    summaries: testSummary, // Note: The summaries array is indicated to contain objects, but their structure isn't provided.
+    summaries: testSummary,
     tagId: "ff7a627c-1fa6-4d08-bc67-e34980741184",
     tags: {
         id: 'ff7a627c-1fa6-4d08-bc67-e34980741184',
@@ -133,17 +134,17 @@ const test = {
         goalType: 'duration',
         originalActivityId: '85482E9F-E29E-4785-845B-98E9F58D4A38',
         recordingAppVersion: '7.29.0',
-        // More properties as indicated by "…" were not provided in detail.
     },
     updatedAt: new Date('Sat Mar 30 2024 15:53:38 GMT-0400 (Eastern Daylight Time)')
 }
 
 
 const UserRuns = async () => {
-    const userRuns = await getUserRuns()
-
+    // const userRuns = await getUserRuns()
+    // to set max with to 900px I can use the class
     return (
-        <div>
+        <div className={"p-5 h-screen w-screen contain-content flex-col"}>
+            <h1>Runs</h1>
            <RunTable runs={[test]} />
         </div>
     )

@@ -65,7 +65,7 @@ export interface SimpleRun {
     nikeLastModified: Date
     activeDurationMs: bigint
     deleteIndicator: boolean
-    summaries: Summary
+    summaries: Summary[]
     session: boolean
     change_tokens: string[]
     sources: string[]
