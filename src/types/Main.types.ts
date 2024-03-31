@@ -56,20 +56,14 @@ export interface Moment {
     updatedAt: string
 }
 
+type SimpleSummary = {
+    metricType: string
+    value: number
+}
 
 export interface SimpleRun {
     id: string
-    app_id: string
     startEpoch: Date
-    endEpoch: Date
-    nikeLastModified: Date
     activeDurationMs: bigint
-    deleteIndicator: boolean
-    summaries: Summary[]
-    session: boolean
-    change_tokens: string[]
-    sources: string[]
-    tags: Tag[]
-    createdAt: string
-    updatedAt: string
+    summaries: SimpleSummary[]
 }
