@@ -7,7 +7,7 @@ export default function Home() {
         <Link href="/UploadRuns/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
           Upload Runs
         </Link>
-        <Link href="/UserRuns/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <Link href="/UserRuns/1" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
           User Runs
         </Link>
       </main>

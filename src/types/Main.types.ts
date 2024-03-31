@@ -56,14 +56,15 @@ export interface Moment {
     updatedAt: string
 }
 
-type SimpleSummary = {
+export type SimpleSummary = {
     metricType: string
     value: number
 }
 
 export interface SimpleRun {
     id: string
-    startEpoch: Date
-    activeDurationMs: bigint
-    summaries: SimpleSummary[]
+    startEpoch: string
+    activeDurationMs: string
+    distance: number
+    pace: string
 }
