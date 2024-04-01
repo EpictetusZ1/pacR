@@ -1,16 +1,12 @@
 // Main Types
 export interface Run {
     id: string
-    app_id: string
     startEpoch: Date
     endEpoch: Date
-    nikeLastModified: Date
     activeDurationMs: bigint
-    deleteIndicator: boolean
-    session: boolean
+    distance: number
+    pace: number
     summaries: Summary[]
-    change_tokens: string[]
-    sources: string[]
     tags: Tag[]
     metrics: Metric[]
     moments: Moment[]
@@ -54,11 +50,6 @@ export interface Moment {
     value: string
     createdAt: string
     updatedAt: string
-}
-
-export type SimpleSummary = {
-    metricType: string
-    value: number
 }
 
 export interface SimpleRun {

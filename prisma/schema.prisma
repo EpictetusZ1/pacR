@@ -10,22 +10,20 @@ generator client {
 
 model Run {
   id               String    @id @default(uuid())
-  app_id           String
   startEpoch       DateTime  @map("start_epoch_ms") @db.Timestamptz(6)
   endEpoch         DateTime  @map("end_epoch_ms") @db.Timestamptz(6)
-  nikeLastModified DateTime  @map("nike_last_modified") @db.Timestamptz(6)
   activeDurationMs BigInt    @map("active_duration_ms")
-  deleteIndicator  Boolean   @map("delete_indicator")
-  session          Boolean
+  // Embed key run data directly in the run object
+  distance         Float
+  pace             Float
   summaries        Summary[]
-  change_tokens    String[]
-  sources          String[]
-  tags             Tags      @relation(fields: [tagId], references: [id])
+  tagId            String
   metrics          Metric[]
   moments          Moment[]
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  tagId            String
+
+  tags Tags @relation(fields: [tagId], references: [id])
 }
 
 model Summary {
@@ -34,7 +32,6 @@ model Summary {
   metricType MetricType @map("metric_type")
   summary    String?
   source     String
-  appId      String     @map("app_id")
   value      Float
   Run        Run        @relation(fields: [runId], references: [id])
 }
@@ -60,7 +57,7 @@ model Tags {
   weather             String?
   location            String?  @default("outdoors")
   note                String?
-  rpe                 Int? // probably stands for Rate of Perceived Exertion
+  rpe                 Int? // Rate of perceived exertion
   shoeId              String?  @map("shoe_id")
   terrain             Terrain? @default(unknown)
   Run                 Run[]

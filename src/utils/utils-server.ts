@@ -1,43 +1,25 @@
-import { SimpleRun, SimpleSummary } from "@/types/Main.types"
+import { SimpleRun } from "@/types/Main.types"
 
 export const formatRunData = (run: any): SimpleRun => {
-    const durationMs = Number(run.activeDurationMs)
-    const hours = Math.floor(durationMs / 3600000)
-    const minutes = Math.floor((durationMs % 3600000) / 60000)
-    const seconds = Math.floor((durationMs % 60000) / 1000)
-    let parts = []
-    if (hours > 0) parts.push(hours)
-    parts.push(minutes)
-    parts.push(seconds)
+    const formatDuration = (ms: number) => {
+        const hours = Math.floor(ms / 3600000)
+        const minutes = Math.floor((ms % 3600000) / 60000).toString().padStart(2, "0")
+        const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, "0")
+        return `${hours > 0 ? hours + ":" : ""}${minutes}:${seconds}`
+    }
 
-    const durationStr = parts.join(':')
-    const startEpoch = new Date(run.startEpoch).toLocaleDateString("en-GB")
-
-    let distance: number = 0
-    let pace: string = ""
-
-    run.summaries.forEach((summary: SimpleSummary) => {
-        if (summary.metricType === "distance" && distance === 0) {
-            distance = Number(summary.value.toFixed(2)) // Assuming you want to round to 2 decimal places
-        } else if (summary.metricType === "pace" && pace === "") {
-            const paceSeconds = Math.round(summary.value * 60) // Convert pace to seconds
-            const paceHours = Math.floor(paceSeconds / 3600)
-            const paceMinutes = Math.floor((paceSeconds % 3600) / 60)
-            const paceSec = paceSeconds % 60
-
-            let paceFormatted = `${paceMinutes}'${paceSec < 10 ? "0" : ""}${paceSec}"`
-            if (paceHours > 0) {
-                paceFormatted = `${paceHours}'${paceFormatted}`
-            }
-            pace = paceFormatted
-        }
-    })
+    const formatPace = (pace: number) => {
+        const paceSeconds = Math.round(pace * 60)
+        const minutes = Math.floor(paceSeconds / 60).toString()
+        const seconds = (paceSeconds % 60).toString().padStart(2, "0")
+        return `${minutes}'${seconds}"`
+    }
 
     return {
         id: run.id,
-        activeDurationMs: durationStr,
-        startEpoch,
-        distance, 
-        pace,
+        activeDurationMs: formatDuration(Number(run.activeDurationMs)),
+        startEpoch: new Date(run.startEpoch).toLocaleDateString("en-GB"),
+        distance: Number(run.distance.toFixed(2)),
+        pace: formatPace(run.pace),
     }
 }

@@ -15,29 +15,26 @@ const Terrain = {
     track : 'track',
     unknown : 'unknown'
 }
+
 const seed = async () => {
     const prisma = new PrismaClient()
     const runs = readJsonFiles(directoryPath)
+                        .filter(run => run.type === "run")
+
     const runCreations = runs.map((run) => {
         const runData = {
             id: run.id,
-            app_id: run.app_id,
             startEpoch: new Date(run.start_epoch_ms),
             endEpoch: new Date(run.end_epoch_ms),
-            nikeLastModified: new Date(run.last_modified),
             activeDurationMs: run.active_duration_ms,
-            session: run.session,
-            deleteIndicator: run.delete_indicator,
-            change_tokens: run.change_tokens,
-            sources: run.sources,
+            distance: run.summaries.find(summary => summary.metric === "distance").value,
+            pace: run.summaries.find(summary => summary.metric === "pace").value,
             summaries: {
                 create: run.summaries.map(summary => ({
                     metricType: summary.metric,
                     summary: summary.summary,
                     source: summary.source,
-                    appId: summary.app_id,
                     value: summary.value,
-
                 })),
             },
             tags: {
@@ -108,4 +105,3 @@ const handleErrorMessage = (error) => {
         console.log(error)
     }
 }
-

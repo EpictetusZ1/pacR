@@ -2,28 +2,20 @@ import { prisma } from "../../../../prisma";
 import Link from "next/link";
 import { formatRunData } from "@/utils/utils-server";
 import RunTable from "@/components/RunTable/RunTable";
+import { SimpleRun } from "@/types/Main.types";
 
 
-async function getUserRuns(pageNum: number) {
+async function getUserRuns(pageNum: number): Promise<SimpleRun[]> {
+    // Might add count later
     const res = await prisma.run.findMany({
         skip: pageNum * 20,
         take: 20,
         select: {
             id: true,
             activeDurationMs: true,
+            distance: true,
+            pace: true,
             startEpoch: true,
-            summaries: {
-                where: {
-                    OR: [
-                        { metricType: "distance" },
-                        { metricType: "pace" }
-                    ]
-                },
-                select: {
-                    metricType: true,
-                    value: true,
-                },
-            },
         },
         orderBy: {
             startEpoch: "desc",
