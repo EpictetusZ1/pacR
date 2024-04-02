@@ -30,14 +30,18 @@ const initialSortedData: SortedData = {
 const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
     const [sortedData, setSortedData] = useState<SortedData>(initialSortedData)
     const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
-    const [dates, setDates] = useState<Date[]>([])
+    const [dates, setDates] = useState<string[]>([])
     const chartRef = useRef(null)
 
     useEffect(() => {
         if (!data) return
-        let dates: Date[] = []
+        let dates: string[] = []
         const sortedChartData = data.sort((a, b) => {
-            dates.push(new Date(a.startEpoch))
+            dates.push(new Date(a.startEpoch).toLocaleDateString('en-US', {
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            }))
             // @ts-ignore
             return new Date(b.startEpoch) - new Date(a.startEpoch)
         })
@@ -45,8 +49,6 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
         let durationData: number[] = []
         let distanceData: number[] = []
         let paceData: number[] = []
-
-
 
         sortedChartData.forEach(item => {
             durationData.push(Number(item.activeDurationMs))
@@ -84,28 +86,6 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
             const xScale = d3.scaleLinear()
                 .domain([1, sortedData.activeDurationMs.length])
                 .range([0, width])
-
-            // const ticks = dates.length > 10 ? dates.filter((d, i) => i % Math.floor(dates.length / 10) === 0) : dates;
-            //
-            // const xAxis = d3.axisBottom(xScale)
-            //     .tickValues(ticks.map((_, i) => i + 1))
-            //     .tickFormat((_, i) => {
-            //         return dates[i].toLocaleDateString()
-            //     })
-            //
-            // let currentX = 0;
-            //
-            // chart.append("g")
-            //     .attr("transform", `translate(0,${height})`)
-            //     .call(xAxis)
-            //     .selectAll("text")
-            //     .attr("transform", "rotate(-45)")
-            //     .style("text-anchor", "end")
-            //     .style("font-size", "12px")
-            //     // .attr("transform", "translate(" + width + ",0)");
-            //     .attr("x", -10)
-            // // 10 max ticks, separated by 10% of the data length
-
 
             // Dynamic scale and data based on currDataView
             const yScales: YScales = {
@@ -163,9 +143,6 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
 
             // Function to update lines based on current selection
             function updateChart() {
-                // Ensure the current yScale is used for the line being updated
-                const currentYScale = yScales[currDataView]
-
                 // Update all lines for any potential yScale changes
                 Object.entries(dataLines).forEach(([dataView, line]) => {
                     const data = dataView === "activeDurationMs" ? sortedData.activeDurationMs :
@@ -215,6 +192,12 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
                 .attr("text-anchor", "middle")
                 .attr("alignment-baseline", "top")
                 .attr("y",  100)
+            const dateText = chart.append("g")
+                .append("text")
+                .style("opacity", 0.5)
+                .attr("text-anchor", "middle")
+                .attr("y",  0)
+
 
             chart.append("rect")
                 .attr("class", "overlay")
@@ -224,12 +207,15 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
                 .on("mouseover", () => {
                     focusDot.style("opacity", 1)
                     focusText.style("opacity", 1)
+                    dateText.style("opacity", 1)
                 })
                 .on("mouseout", () => {
                     focusDot.style("opacity", 0)
                     focusText.style("opacity", 0)
+                    dateText.style("opacity", 0)
                 })
                 .on("mousemove", mousemove)
+
 
             function mousemove(event: MouseEvent) {
                 const x0 = Math.round(xScale.invert(d3.pointer(event)[0]))
@@ -262,9 +248,15 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
                         .attr("x", xScale(x0))
                         .attr("y", currentYScale(selectedData) - 15)
                         .style("opacity", 1)
+                    // add the date to the bottom of the chart on hover
+                    dateText.html(dates[x0 - 1])
+                        .attr("x", xScale(x0))
+                        .attr("y", height + 25)
+                        .style("opacity", 1)
                 } else {
                     focusDot.style("opacity", 0)
                     focusText.style("opacity", 0)
+                    dateText.style("opacity", 0)
                 }
             }
         }
