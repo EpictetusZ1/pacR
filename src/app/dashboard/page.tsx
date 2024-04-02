@@ -1,7 +1,5 @@
-import LineChart from "@/components/Charts/LineChart";
-import { SimpleRun } from "@/types/Main.types";
+import LineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
-import { formatRunData } from "@/utils/utils-server";
 
 
 async function getUserRuns(): Promise<any> {
@@ -22,13 +20,14 @@ async function getUserRuns(): Promise<any> {
     if (!res) {
         throw new Error("Failed to fetch data")
     }
-
     return res
 }
+
 const Dashboard = async () => {
     const data = await getUserRuns()
     return (
-        <div className={"h-screen w-screen p-8"}>
+        <div className={"h-screen w-screen p-8 flex flex-col items-center justify-start"}>
+            <h1 className={"text-5xl font-bold font-inter p-8"}>Run Data</h1>
             <LineChart data={data}/>
         </div>
     )

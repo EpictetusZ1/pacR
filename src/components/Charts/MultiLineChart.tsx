@@ -1,5 +1,5 @@
 "use client"
-import { SetStateAction, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import { SimpleRun } from "@/types/Main.types"
 import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
@@ -27,7 +27,8 @@ const initialSortedData: SortedData = {
     pace: []
 }
 
-const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
+// TODO: Make a tiny view run modal, and have cursor: pointer on hover
+const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
     const [sortedData, setSortedData] = useState<SortedData>(initialSortedData)
     const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
     const [dates, setDates] = useState<string[]>([])
@@ -278,4 +279,4 @@ const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
     )
 }
 
-export default MultiAxisLineChart
+export default MultiLineChart
