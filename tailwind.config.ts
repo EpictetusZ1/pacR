@@ -12,6 +12,19 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    colors:{
+        taupe: "#7e6c6cff",
+        lightRed: "#f87575ff",
+        melon: "#ffa9a3ff",
+        soft: "#b9e6ffff",
+        cornflower: "#5c95ffff",
+        charts: {
+            green: "#72F67F",
+            purple: "#7F72F6",
+            red: "#F67F72",
+        }
+
+    },
     extend: {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

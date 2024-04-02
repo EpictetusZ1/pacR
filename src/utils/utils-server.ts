@@ -12,7 +12,7 @@ export const formatRunData = (run: any): SimpleRun => {
 }
 
 export const formatMillisecondsToTime = (bigNum: number | NumberValue): string => {
-    if (bigNum === 0 || bigNum === 0.0) {
+    if (bigNum === 0) {
         return "0"
     }
     let milliseconds: number = Number(bigNum)
@@ -23,11 +23,14 @@ export const formatMillisecondsToTime = (bigNum: number | NumberValue): string =
     seconds = seconds % 60
     minutes = minutes % 60
 
-    // Formatting to HH:MM:SS, removing leading zeros
-    return [hours, minutes, seconds]
-        .map(val => val < 10 ? `0${val}` : val.toString())
-        .join(":")
-        .replace(/^0+:|0:|^0/gm, "")
+    const parts = [
+        hours ? `${hours}` : null,
+        `${minutes < 10 ? (hours ? "0" : "") : ""}${minutes}`,
+        `${seconds < 10 ? "0" : ""}${seconds}`
+    ].filter(Boolean); // Remove null values
+
+    const timeString = parts.join(":")
+    return timeString.startsWith("0") ? timeString.substring(1) : timeString
 }
 
 export const formatPace = (pace: number) => {

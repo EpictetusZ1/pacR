@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { SetStateAction, useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import { SimpleRun } from "@/types/Main.types"
 import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
@@ -7,25 +7,69 @@ import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
 
 type DataView = "activeDurationMs" | "distance" | "pace"
 
-
 interface YScales {
     activeDurationMs: d3.ScaleLinear<number, number, never>
     distance: d3.ScaleLinear<number, number, never>
     pace: d3.ScaleLinear<number, number, never>
+
     [key: string]: d3.ScaleLinear<number, number, never>
 }
 
+type SortedData = {
+    activeDurationMs: number[]
+    distance: number[]
+    pace: number[]
+}
 
-const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
+const initialSortedData: SortedData = {
+    activeDurationMs: [],
+    distance: [],
+    pace: []
+}
+
+const MultiAxisLineChart = ({data}: { data: SimpleRun[] }) => {
+    const [sortedData, setSortedData] = useState<SortedData>(initialSortedData)
     const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
+    const [dates, setDates] = useState<Date[]>([])
     const chartRef = useRef(null)
-    let chartData = data.slice(0, 10)
+
     useEffect(() => {
-        if (chartRef.current) {
+        if (!data) return
+        let dates: Date[] = []
+        const sortedChartData = data.sort((a, b) => {
+            dates.push(new Date(a.startEpoch))
+            // @ts-ignore
+            return new Date(b.startEpoch) - new Date(a.startEpoch)
+        })
+
+        let durationData: number[] = []
+        let distanceData: number[] = []
+        let paceData: number[] = []
+
+
+
+        sortedChartData.forEach(item => {
+            durationData.push(Number(item.activeDurationMs))
+            distanceData.push(Number(item.distance))
+            paceData.push(Number(item.pace))
+        })
+
+        if (durationData.length > 0 && distanceData.length > 0 && paceData.length > 0) {
+            setSortedData({
+                activeDurationMs: durationData,
+                distance: distanceData,
+                pace: paceData
+            })
+            setDates(dates)
+        }
+    }, [data])
+
+    useEffect(() => {
+        if (sortedData && chartRef.current) {
             const svg = d3.select(chartRef.current)
             svg.selectAll("*").remove()
 
-            const margin = { top: 20, right: 30, bottom: 30, left: 50 },
+            const margin = { top: 20, right: 30, bottom: 40, left: 50 },
                 width = 960 - margin.left - margin.right,
                 height = 500 - margin.top - margin.bottom
 
@@ -34,28 +78,50 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
 
             svg.attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-                .style("background", "rgba(157,157,157,0.28)")
+                .style("background", "rgb(243,243,243)")
                 .style("overflow", "visible")
 
             const xScale = d3.scaleLinear()
-                .domain([1, chartData.length])
+                .domain([1, sortedData.activeDurationMs.length])
                 .range([0, width])
 
-            // Prepare data
-            const durationData = chartData.map(d => Number(d.activeDurationMs))
-            const distanceData = chartData.map(d => Number(d.distance))
-            const paceData = chartData.map(d => Number(d.pace))
+            // const ticks = dates.length > 10 ? dates.filter((d, i) => i % Math.floor(dates.length / 10) === 0) : dates;
+            //
+            // const xAxis = d3.axisBottom(xScale)
+            //     .tickValues(ticks.map((_, i) => i + 1))
+            //     .tickFormat((_, i) => {
+            //         return dates[i].toLocaleDateString()
+            //     })
+            //
+            // let currentX = 0;
+            //
+            // chart.append("g")
+            //     .attr("transform", `translate(0,${height})`)
+            //     .call(xAxis)
+            //     .selectAll("text")
+            //     .attr("transform", "rotate(-45)")
+            //     .style("text-anchor", "end")
+            //     .style("font-size", "12px")
+            //     // .attr("transform", "translate(" + width + ",0)");
+            //     .attr("x", -10)
+            // // 10 max ticks, separated by 10% of the data length
+
 
             // Dynamic scale and data based on currDataView
             const yScales: YScales = {
-                activeDurationMs: getYScale(durationData),
-                distance: getYScale(distanceData),
-                pace: getYScale(paceData)
+                activeDurationMs: getYScale(sortedData.activeDurationMs),
+                distance: getYScale(sortedData.distance),
+                pace: getYScale(sortedData.pace)
             }
 
             function getYScale(data: number[]) {
+                if (currDataView === "activeDurationMs") {
+                    return d3.scaleLinear()
+                        .domain([0, d3.max(data)!])
+                        .range([height, 0])
+                }
                 return d3.scaleLinear()
-                    .domain([0, d3.max(data)!])
+                    .domain(d3.extent(data) as [number, number])
                     .range([height, 0])
             }
 
@@ -66,22 +132,33 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
 
             const dataLines = {
                 activeDurationMs: chart.append("path")
-                    .datum(durationData)
+                    .datum(sortedData.activeDurationMs)
                     .attr("class", "data-line")
                     .attr("id", "activeDurationMs-line"),
                 distance: chart.append("path")
-                    .datum(distanceData)
+                    .datum(sortedData.distance)
                     .attr("class", "data-line")
                     .attr("id", "distance-line"),
                 pace: chart.append("path")
-                    .datum(paceData)
+                    .datum(sortedData.pace)
                     .attr("class", "data-line")
                     .attr("id", "pace-line")
             }
 
             const getStrokeColor = (dataView: DataView) => {
-                return dataView === "activeDurationMs" ? "#5b55ff" :
-                    dataView === "distance" ? "#ff5e5e" : "#51fd4c"
+                if (currDataView !== dataView) {
+                    return "#DDDDDD";
+                }
+                switch (dataView) {
+                    case "activeDurationMs":
+                        return "#72F67F";
+                    case "distance":
+                        return "#7F72F6";
+                    case "pace":
+                        return "#F67F72";
+                    default:
+                        return "#DDDDDD";
+                }
             }
 
             // Function to update lines based on current selection
@@ -91,28 +168,38 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
 
                 // Update all lines for any potential yScale changes
                 Object.entries(dataLines).forEach(([dataView, line]) => {
-                    const data = dataView === "activeDurationMs" ? durationData :
-                        dataView === "distance" ? distanceData : paceData
+                    const data = dataView === "activeDurationMs" ? sortedData.activeDurationMs :
+                        dataView === "distance" ? sortedData.distance : sortedData.pace
                     const yScale = yScales[dataView]
 
                     line.datum(data)
                         .transition()
                         .attr("d", lineGenerator.y(d => yScale(d)))
                         .attr("stroke", getStrokeColor(dataView as DataView))
-                        .attr("opacity", dataView === currDataView ? 1 : 0.3) // Highlight selected data view
-                        .style("z-index", dataView === currDataView ? 2 : 1)
+                        .attr("opacity", dataView === currDataView ? 1 : 1) // Highlight selected data view
                         .attr("stroke-width", dataView === currDataView ? "3px" : "2px")
                         .attr("fill", "none")
                 })
-
-                // Update Y Axis on currView change
-                chart.select(".y-axis").remove() // Remove the existing Y axis
-                chart.append("g")
-                    .attr("class", "y-axis")
-                    .call(d3.axisLeft(currentYScale))
+                if (dataLines[currDataView]) {
+                    dataLines[currDataView].raise() // Bring selected data to front
+                }
             }
 
-            // Call updateChart on initial render
+            function updateYAxis() {
+                chart.select(".y-axis").remove()
+                const currentYScale = yScales[currDataView]
+                let yAxis = d3.axisLeft(currentYScale)
+
+                if (currDataView === "activeDurationMs") {
+                    yAxis.tickFormat((d) => formatMillisecondsToTime(Number(d) as number))
+                }
+
+                chart.append("g")
+                    .attr("class", "y-axis")
+                    .call(yAxis)
+            }
+
+            updateYAxis()
             updateChart()
 
 
@@ -121,13 +208,13 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
                 .append("circle")
                 .style("fill", "#000")
                 .attr("r", 5) // Radius of the dot
-                .style("opacity", 0.5) // Initially hidden
-
+                .style("opacity", 0) // Initially hidden
             const focusText = chart.append("g")
                 .append("text")
                 .style("opacity", 0.5)
                 .attr("text-anchor", "middle")
                 .attr("alignment-baseline", "top")
+                .attr("y",  100)
 
             chart.append("rect")
                 .attr("class", "overlay")
@@ -150,19 +237,19 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
 
                 switch (currDataView) {
                     case "activeDurationMs":
-                        selectedData = durationData[x0 - 1]
+                        selectedData = sortedData.activeDurationMs[x0 - 1]
                         displayText = formatMillisecondsToTime(selectedData)
                         break
                     case "distance":
-                        selectedData = distanceData[x0 - 1]
+                        selectedData = sortedData.distance[x0 - 1]
                         displayText = `${selectedData.toFixed(2)} m`
                         break
                     case "pace":
-                        selectedData = paceData[x0 - 1]
+                        selectedData = sortedData.pace[x0 - 1]
                         displayText = formatPace(selectedData)
                         break
                     default:
-                        selectedData = undefined
+                        selectedData = sortedData.activeDurationMs[x0 - 1]
                 }
 
                 if (selectedData) {
@@ -173,7 +260,7 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
 
                     focusText.html(displayText!)
                         .attr("x", xScale(x0))
-                        .attr("y", currentYScale(selectedData) - 10)
+                        .attr("y", currentYScale(selectedData) - 15)
                         .style("opacity", 1)
                 } else {
                     focusDot.style("opacity", 0)
@@ -181,15 +268,18 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
                 }
             }
         }
-    }, [chartData, currDataView])
+    }, [sortedData, currDataView])
 
     return (
         <div>
             <svg ref={chartRef}></svg>
-            <div className={"flex gap-3 py-4"}>
-                <button className={"btn bg-amber-500 p-4 rounded"} onClick={() => setCurrDataView("activeDurationMs")}>Duration</button>
-                <button className={"btn bg-amber-600 p-4 rounded"} onClick={() => setCurrDataView("distance")}>Distance</button>
-                <button className={"btn bg-amber-700 p-4 rounded"} onClick={() => setCurrDataView("pace")}>Pace</button>
+            <div className={"flex gap-3 py-4 text-lg"}>
+                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-green ${currDataView==="activeDurationMs" && "bg-charts-green border-charts-green"}`}
+                        onClick={() => setCurrDataView("activeDurationMs")}>Duration</button>
+                <button  className={`btn px-4 py-2 border-4 rounded  font-medium border-charts-purple ${currDataView==="distance" && "bg-charts-purple"}`}
+                         onClick={() => setCurrDataView("distance")}>Distance</button>
+                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-red ${currDataView==="pace" && "bg-charts-red"}`}
+                        onClick={() => setCurrDataView("pace")}>Pace</button>
             </div>
 
         </div>
@@ -197,22 +287,3 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
 }
 
 export default MultiAxisLineChart
-// create a legend
-// const legend = svg.append("g")
-//     .attr("transform", `translate(${width + 20}, 20)`)
-//     .attr("font-family", "sans-serif")
-//     .attr("font-size", 10)
-//     .selectAll("g")
-//     .data(Object.keys(colors))
-//     .join("g")
-//     .attr("transform", (_, i) => `translate(0,${i * 20})`)
-// legend.append("rect")
-//     .attr("x", -19)
-//     .attr("width", 19)
-//     .attr("height", 19)
-//     .attr("fill", d => colors[d])
-// legend.append("text")
-//     .attr("x", -24)
-//     .attr("y", 9.5)
-//     .attr("dy", "0.35em")
-//     .text(d => d)
