@@ -1,22 +1,11 @@
 "use client"
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { SimpleRun } from "@/types/Main.types";
+import { NumberValue } from "d3";
+import { formatMillisecondsToTime } from "@/utils/utils-server";
 
-function formatMillisecondsToTime(milliseconds: number) {
-    let seconds = Math.floor(milliseconds / 1000);
-    let minutes = Math.floor(seconds / 60);
-    let hours = Math.floor(minutes / 60);
 
-    seconds = seconds % 60; // remainder is seconds
-    minutes = minutes % 60; // remainder is minutes
-
-    // Formatting to HH:MM:SS, removing leading zeros
-    return [hours, minutes, seconds]
-        .map(val => val < 10 ? `0${val}` : val.toString())
-        .join(':')
-        .replace(/^00:/, ''); // Remove leading "00:" if any
-}
 
 const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
     const chartRef = useRef(null)
@@ -24,18 +13,17 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
     let chartDataOne: number[] = chartData.map((d) => {
         return Number(d.activeDurationMs)
     })
-    console.log(chartDataOne)
 
     useEffect(() => {
         if (chartRef.current) {
             const svg = d3.select(chartRef.current)
             svg.selectAll("*").remove()
 
-            const margin = { top: 20, right: 50, bottom: 30, left: 80 },
+            const margin = { top: 20, right: 30, bottom: 30, left: 80 },
                 width = 960 - margin.left - margin.right,
                 height = 500 - margin.top - margin.bottom
 
-            const chart = svg.append('g')
+            const chart = svg.append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
             svg.attr("width", width + margin.left + margin.right)
@@ -55,10 +43,14 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
             const generateScaledLine = d3.line<number>()
                 .x((_, i) => xScale(i))
                 .y((d: number) => yScale(d))
+                .curve(d3.curveCardinal)
 
 
-            const xAxis = d3.axisBottom(xScale).ticks(chartDataOne.length);
-            const yAxis = d3.axisLeft(yScale);
+            const xAxis = d3.axisBottom(xScale).ticks(chartDataOne.length / 5);
+            // const yAxis = d3.axisLeft(yScale);
+            const yAxis = d3.axisLeft(yScale)
+                .tickFormat(d => formatMillisecondsToTime(d));
+
 
             chart.append("g")
                 .call(xAxis)
@@ -71,7 +63,52 @@ const MultiAxisLineChart = ({ data }: { data: SimpleRun[] }) => {
                 .datum(chartDataOne)
                 .attr("fill", "none")
                 .attr("stroke", "black")
+                .attr("stroke-width", 1.5)
                 .attr("d", generateScaledLine)
+
+            const focusDot = chart.append("g")
+                .append("circle")
+                .style("fill", "blue")
+                .attr("r", 5) // Radius of the dot
+                .style("opacity", 0); // Initially hidden
+
+            const focusText = chart.append("g")
+                .append("text")
+                .style("opacity", 0)
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline", "middle");
+
+            chart.append("rect")
+                .attr("class", "overlay")
+                .attr("width", width)
+                .attr("height", height)
+                .style("opacity", 0)
+                .on("mouseover", () => {
+                    focusDot.style("opacity", 1);
+                    focusText.style("opacity", 1);
+                })
+                .on("mouseout", () => {
+                    focusDot.style("opacity", 0);
+                    focusText.style("opacity", 0);
+                })
+                .on("mousemove", mousemove);
+
+            function mousemove(event: MouseEvent) {
+                const x0 = Math.round(xScale.invert(d3.pointer(event)[0])); // Convert mouse position back to data index
+                const d = chartDataOne[x0]; // Access the data point directly if x-values are indices
+
+                if (d !== undefined) {
+                    focusDot.attr("cx", xScale(x0))
+                        .attr("cy", yScale(d))
+                        .style("opacity", 1);
+
+                    focusText.html(`Value: ${formatMillisecondsToTime(d)}`) // Assuming d is a time in milliseconds
+                        .attr("x", xScale(x0))
+                        .attr("y", yScale(d) - 10)
+                        .style("opacity", 1);
+                }
+            }
+
 
 
             // const xAxis = d3
