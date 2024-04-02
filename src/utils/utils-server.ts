@@ -2,13 +2,6 @@ import { SimpleRun } from "@/types/Main.types"
 import { NumberValue } from "d3";
 
 export const formatRunData = (run: any): SimpleRun => {
-    const formatPace = (pace: number) => {
-        const paceSeconds = Math.round(pace * 60)
-        const minutes = Math.floor(paceSeconds / 60).toString()
-        const seconds = (paceSeconds % 60).toString().padStart(2, "0")
-        return `${minutes}'${seconds}"`
-    }
-
     return {
         id: run.id,
         activeDurationMs: formatMillisecondsToTime(Number(run.activeDurationMs)),
@@ -18,7 +11,10 @@ export const formatRunData = (run: any): SimpleRun => {
     }
 }
 
-export function formatMillisecondsToTime(bigNum: number | NumberValue): string {
+export const formatMillisecondsToTime = (bigNum: number | NumberValue): string => {
+    if (bigNum === 0 || bigNum === 0.0) {
+        return "0"
+    }
     let milliseconds: number = Number(bigNum)
     let seconds = Math.floor(milliseconds / 1000)
     let minutes = Math.floor(seconds / 60)
@@ -32,4 +28,11 @@ export function formatMillisecondsToTime(bigNum: number | NumberValue): string {
         .map(val => val < 10 ? `0${val}` : val.toString())
         .join(":")
         .replace(/^0+:|0:|^0/gm, "")
+}
+
+export const formatPace = (pace: number) => {
+    const paceSeconds = Math.round(pace * 60)
+    const minutes = Math.floor(paceSeconds / 60).toString()
+    const seconds = (paceSeconds % 60).toString().padStart(2, "0")
+    return `${minutes}'${seconds}"`
 }
