@@ -11,7 +11,7 @@ export const formatRunData = (run: any): SimpleRun => {
     }
 }
 
-export const formatMillisecondsToTime = (bigNum: number | NumberValue): string => {
+export const formatMillisecondsToTime = (bigNum: number | NumberValue | bigint): string => {
     if (bigNum === 0) {
         return "0"
     }
@@ -27,7 +27,7 @@ export const formatMillisecondsToTime = (bigNum: number | NumberValue): string =
         hours ? `${hours}` : null,
         `${minutes < 10 ? (hours ? "0" : "") : ""}${minutes}`,
         `${seconds < 10 ? "0" : ""}${seconds}`
-    ].filter(Boolean); // Remove null values
+    ].filter(Boolean) // Remove null values
 
     const timeString = parts.join(":")
     return timeString.startsWith("0") ? timeString.substring(1) : timeString

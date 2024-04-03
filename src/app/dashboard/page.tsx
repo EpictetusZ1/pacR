@@ -1,5 +1,6 @@
 import MultiLineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
+import RunCard from "@/components/RunCard/RunCard";
 
 
 async function getUserRuns(): Promise<any> {
@@ -29,6 +30,8 @@ const Dashboard = async () => {
         <div className={"h-screen w-screen p-8 flex flex-col items-center justify-start"}>
             <h1 className={"text-5xl font-bold font-inter p-8"}>Run Data</h1>
             <MultiLineChart data={data}/>
+
+            <RunCard />
         </div>
     )
 }
