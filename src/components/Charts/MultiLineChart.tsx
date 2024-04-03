@@ -1,0 +1,296 @@
+"use client"
+import { useEffect, useRef, useState } from "react"
+import * as d3 from "d3"
+import { SimpleRun } from "@/types/Main.types"
+import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
+
+
+type DataView = "activeDurationMs" | "distance" | "pace"
+
+interface YScales {
+    activeDurationMs: d3.ScaleLinear<number, number, never>
+    distance: d3.ScaleLinear<number, number, never>
+    pace: d3.ScaleLinear<number, number, never>
+    [key: string]: d3.ScaleLinear<number, number, never>
+}
+
+type SortedData = {
+    activeDurationMs: number[]
+    distance: number[]
+    pace: number[]
+}
+
+const initialSortedData: SortedData = {
+    activeDurationMs: [],
+    distance: [],
+    pace: []
+}
+
+type D3Element = d3.Selection<SVGGElement, unknown, HTMLElement, any>
+
+
+// TODO: Make a tiny view run modal, and have cursor: pointer on hover
+const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
+    const [sortedData, setSortedData] = useState<SortedData>(initialSortedData)
+    const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
+    const [dates, setDates] = useState<string[]>([])
+    const chartRef = useRef(null)
+
+    const processData = (sortedData: SimpleRun[]) => {
+        let durationData: number[] = []
+        let distanceData: number[] = []
+        let paceData: number[] = []
+        let dates: string[] = []
+
+        sortedData.forEach((item: SimpleRun) => {
+            durationData.push(Number(item.activeDurationMs))
+            distanceData.push(Number(item.distance))
+            paceData.push(Number(item.pace))
+            dates.push(new Date(item.startEpoch).toLocaleDateString('en-US', {
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            }))
+        })
+
+        return {
+            durationData,
+            distanceData,
+            paceData,
+            dates
+        }
+    }
+
+    const getStrokeColor = (dataView: DataView) => {
+        if (currDataView !== dataView) {
+            return "#DDDDDD";
+        }
+        switch (dataView) {
+            case "activeDurationMs":
+                return "#72F67F";
+            case "distance":
+                return "#7F72F6";
+            case "pace":
+                return "#F67F72";
+            default:
+                return "#DDDDDD";
+        }
+    }
+
+    useEffect(() => {
+        const { durationData, distanceData, paceData, dates } = processData(data)
+        setSortedData({
+            activeDurationMs: durationData,
+            distance: distanceData,
+            pace: paceData
+        })
+        setDates(dates)
+    }, [data])
+
+    const margin = { top: 20, right: 30, bottom: 40, left: 50 }
+    const width = 960 - margin.left - margin.right
+    const height = 500 - margin.top - margin.bottom
+
+    useEffect(() => {
+        if (!chartRef.current) return
+        const svg = d3.select(chartRef.current)
+
+        svg.selectAll("*").remove()
+        svg.append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`)
+
+        svg.attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .style("background", "rgb(243,243,243)")
+            .style("overflow", "visible")
+    }, [])
+
+
+    function getYScale(data: number[]) {
+        if (currDataView === "activeDurationMs") {
+            return d3.scaleLinear()
+                .domain([0, d3.max(data)!])
+                .range([height, 0])
+        }
+        return d3.scaleLinear()
+            .domain(d3.extent(data) as [number, number])
+            .range([height, 0])
+    }
+    function updateYAxis(chart: D3Element, yScales: YScales) {
+        chart.select(".y-axis").remove()
+        const currentYScale = yScales[currDataView]
+        let yAxis = d3.axisLeft(currentYScale)
+
+        if (currDataView === "activeDurationMs") {
+            yAxis.tickFormat((d) => formatMillisecondsToTime(Number(d) as number))
+        }
+
+        chart.append("g")
+            .attr("class", "y-axis")
+            .call(yAxis)
+    }
+
+    // Function to update lines based on current selection
+    function updateChart(dataLines: Record<DataView, d3.Selection<SVGPathElement, number[], HTMLElement, undefined>>, lineGenerator: d3.Line<number>, yScales: YScales) {
+        // Update all lines for any potential yScale changes
+        Object.entries(dataLines).forEach(([dataView, line]) => {
+            const data = dataView === "activeDurationMs" ? sortedData.activeDurationMs :
+                dataView === "distance" ? sortedData.distance : sortedData.pace
+            const yScale = yScales[dataView]
+
+            line.datum(data)
+                .transition()
+                .attr("d", lineGenerator.y(d => yScale(d)))
+                .attr("stroke", getStrokeColor(dataView as DataView))
+                .attr("opacity", dataView === currDataView ? 1 : 1) // Highlight selected data view
+                .attr("stroke-width", dataView === currDataView ? "3px" : "2px")
+                .attr("fill", "none")
+        })
+        if (dataLines[currDataView]) {
+            dataLines[currDataView].raise() // Bring selected data to front
+        }
+    }
+
+    useEffect(() => {
+        if (sortedData && chartRef.current) {
+            const svg = d3.select(chartRef.current)
+            svg.selectAll("*").remove()
+
+            const chart = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`)
+
+            const xScale = d3.scaleLinear()
+                .domain([1, sortedData.activeDurationMs.length])
+                .range([0, width])
+
+            // Dynamic scale and data based on currDataView
+            const yScales: YScales = {
+                activeDurationMs: getYScale(sortedData.activeDurationMs),
+                distance: getYScale(sortedData.distance),
+                pace: getYScale(sortedData.pace)
+            }
+
+            const lineGenerator = d3.line<number>()
+                .x((_, i) => xScale(i + 1))
+                .y(d => yScales[currDataView](d))
+                .curve(d3.curveCardinal)
+
+            const dataLines = {
+                activeDurationMs: chart.append("path")
+                    .datum(sortedData.activeDurationMs)
+                    .attr("class", "data-line")
+                    .attr("id", "activeDurationMs-line"),
+                distance: chart.append("path")
+                    .datum(sortedData.distance)
+                    .attr("class", "data-line")
+                    .attr("id", "distance-line"),
+                pace: chart.append("path")
+                    .datum(sortedData.pace)
+                    .attr("class", "data-line")
+                    .attr("id", "pace-line")
+            }
+
+            updateYAxis(chart, yScales)
+            updateChart(dataLines, lineGenerator, yScales)
+
+            // Mouse Interactions
+            const focusDot = chart.append("g")
+                .append("circle")
+                .style("fill", "#000")
+                .attr("r", 5) // Radius of the dot
+                .style("opacity", 0) // Initially hidden
+            const focusText = chart.append("g")
+                .append("text")
+                .style("opacity", 0.5)
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline", "top")
+                .attr("y",  100)
+            const dateText = chart.append("g")
+                .append("text")
+                .style("opacity", 0.5)
+                .attr("text-anchor", "middle")
+                .attr("y",  0)
+
+
+            chart.append("rect")
+                .attr("class", "overlay")
+                .attr("width", width)
+                .attr("height", height)
+                .style("opacity", 0)
+                .on("mouseover", () => {
+                    focusDot.style("opacity", 1)
+                    focusText.style("opacity", 1)
+                    dateText.style("opacity", 1)
+                })
+                .on("mouseout", () => {
+                    focusDot.style("opacity", 0)
+                    focusText.style("opacity", 0)
+                    dateText.style("opacity", 0)
+                })
+                .on("mousemove", (e) => mousemove(e, xScale, yScales, focusDot, focusText, dateText))
+
+        }
+    }, [sortedData, currDataView, getStrokeColor])
+
+    function mousemove(event: MouseEvent, xScale: d3.ScaleLinear<number, number, never>, yScales: YScales,
+                       focusDot: d3.Selection<SVGCircleElement, unknown, HTMLElement, any>,
+                       focusText: d3.Selection<SVGTextElement, unknown, HTMLElement, any>,
+                       dateText: d3.Selection<SVGTextElement, unknown, HTMLElement, any>) {
+        const x0 = Math.round(xScale.invert(d3.pointer(event)[0]))
+        let selectedData, displayText = ""
+
+        switch (currDataView) {
+            case "activeDurationMs":
+                selectedData = sortedData.activeDurationMs[x0 - 1]
+                displayText = formatMillisecondsToTime(selectedData)
+                break
+            case "distance":
+                selectedData = sortedData.distance[x0 - 1]
+                displayText = `${selectedData.toFixed(2)} m`
+                break
+            case "pace":
+                selectedData = sortedData.pace[x0 - 1]
+                displayText = formatPace(selectedData)
+                break
+            default:
+                selectedData = sortedData.activeDurationMs[x0 - 1]
+        }
+
+        if (selectedData) {
+            const currentYScale = yScales[currDataView]
+            focusDot.attr("cx", xScale(x0))
+                .attr("cy", currentYScale(selectedData))
+                .style("opacity", 1)
+            focusText.html(displayText!)
+                .attr("x", xScale(x0))
+                .attr("y", currentYScale(selectedData) - 15)
+                .style("opacity", 1)
+            // add the date to the bottom of the chart on hover
+            dateText.html(dates[x0 - 1])
+                .attr("x", xScale(x0))
+                .attr("y", height + 25)
+                .style("opacity", 1)
+        } else {
+            focusDot.style("opacity", 0)
+            focusText.style("opacity", 0)
+            dateText.style("opacity", 0)
+        }
+    }
+
+    return (
+        <div>
+            <svg ref={chartRef}></svg>
+            <div className={"flex gap-3 py-4 text-lg"}>
+                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-green ${currDataView==="activeDurationMs" && "bg-charts-green border-charts-green"}`}
+                        onClick={() => setCurrDataView("activeDurationMs")}>Duration</button>
+                <button  className={`btn px-4 py-2 border-4 rounded  font-medium border-charts-purple ${currDataView==="distance" && "bg-charts-purple"}`}
+                         onClick={() => setCurrDataView("distance")}>Distance</button>
+                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-red ${currDataView==="pace" && "bg-charts-red"}`}
+                        onClick={() => setCurrDataView("pace")}>Pace</button>
+            </div>
+
+        </div>
+    )
+}
+
+export default MultiLineChart
