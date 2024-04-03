@@ -1,4 +1,4 @@
-import LineChart from "@/components/Charts/MultiLineChart";
+import MultiLineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
 
 
@@ -13,7 +13,7 @@ async function getUserRuns(): Promise<any> {
             startEpoch: true,
         },
         orderBy: {
-            startEpoch: "desc",
+            startEpoch: "asc",
         },
     })
 
@@ -28,7 +28,7 @@ const Dashboard = async () => {
     return (
         <div className={"h-screen w-screen p-8 flex flex-col items-center justify-start"}>
             <h1 className={"text-5xl font-bold font-inter p-8"}>Run Data</h1>
-            <LineChart data={data}/>
+            <MultiLineChart data={data}/>
         </div>
     )
 }
