@@ -21,7 +21,6 @@ async function getRun(): Promise<Run> {
         throw new Error("Failed to fetch data")
     }
 
-    console.log(res)
     return res
 }
 
