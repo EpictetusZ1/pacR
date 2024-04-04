@@ -1,91 +1,59 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
-import { SimpleRun } from "@/types/Main.types"
 import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
+import { DateAndId } from "@/types/Main.types";
+import RunCard from "@/components/RunCard/RunCard";
 
 
 type DataView = "activeDurationMs" | "distance" | "pace"
 
 interface YScales {
-    activeDurationMs: d3.ScaleLinear<number, number, never>
-    distance: d3.ScaleLinear<number, number, never>
-    pace: d3.ScaleLinear<number, number, never>
-    [key: string]: d3.ScaleLinear<number, number, never>
-}
-
-type SortedData = {
-    activeDurationMs: number[]
-    distance: number[]
-    pace: number[]
-}
-
-const initialSortedData: SortedData = {
-    activeDurationMs: [],
-    distance: [],
-    pace: []
+    activeDurationMs: d3.ScaleLinear<number, number>
+    distance: d3.ScaleLinear<number, number>
+    pace: d3.ScaleLinear<number, number>
+    [key: string]: d3.ScaleLinear<number, number>
 }
 
 type D3Element = d3.Selection<SVGGElement, unknown, HTMLElement, any>
 
+interface MultiLineChartProps {
+    durationData: number[],
+    distanceData: number[],
+    paceData: number[],
+    dateAndIds: DateAndId[]
+}
+
+type SRun = {
+    id: string
+    startEpoch: string
+    activeDurationMs: number
+    distance: number
+    pace: number
+
+}
 
 // TODO: Make a tiny view run modal, and have cursor: pointer on hover
-const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
-    const [sortedData, setSortedData] = useState<SortedData>(initialSortedData)
+const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
     const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
-    const [dates, setDates] = useState<string[]>([])
+    const [currRun, setCurrRun] = useState<SRun | null>(null)
     const chartRef = useRef(null)
-
-    const processData = (sortedData: SimpleRun[]) => {
-        let durationData: number[] = []
-        let distanceData: number[] = []
-        let paceData: number[] = []
-        let dates: string[] = []
-
-        sortedData.forEach((item: SimpleRun) => {
-            durationData.push(Number(item.activeDurationMs))
-            distanceData.push(Number(item.distance))
-            paceData.push(Number(item.pace))
-            dates.push(new Date(item.startEpoch).toLocaleDateString('en-US', {
-                day: "2-digit",
-                month: "long",
-                year: "numeric"
-            }))
-        })
-
-        return {
-            durationData,
-            distanceData,
-            paceData,
-            dates
-        }
-    }
 
     const getStrokeColor = (dataView: DataView) => {
         if (currDataView !== dataView) {
-            return "#DDDDDD";
+            return "#DDDDDD"
         }
         switch (dataView) {
             case "activeDurationMs":
-                return "#72F67F";
+                return "#72F67F"
             case "distance":
-                return "#7F72F6";
+                return "#7F72F6"
             case "pace":
-                return "#F67F72";
+                return "#F67F72"
             default:
-                return "#DDDDDD";
+                return "#DDDDDD"
         }
     }
-
-    useEffect(() => {
-        const { durationData, distanceData, paceData, dates } = processData(data)
-        setSortedData({
-            activeDurationMs: durationData,
-            distance: distanceData,
-            pace: paceData
-        })
-        setDates(dates)
-    }, [data])
 
     const margin = { top: 20, right: 30, bottom: 40, left: 50 }
     const width = 960 - margin.left - margin.right
@@ -105,7 +73,6 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
             .style("overflow", "visible")
     }, [])
 
-
     function getYScale(data: number[]) {
         if (currDataView === "activeDurationMs") {
             return d3.scaleLinear()
@@ -116,6 +83,7 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
             .domain(d3.extent(data) as [number, number])
             .range([height, 0])
     }
+
     function updateYAxis(chart: D3Element, yScales: YScales) {
         chart.select(".y-axis").remove()
         const currentYScale = yScales[currDataView]
@@ -134,11 +102,11 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
     function updateChart(dataLines: Record<DataView, d3.Selection<SVGPathElement, number[], HTMLElement, undefined>>, lineGenerator: d3.Line<number>, yScales: YScales) {
         // Update all lines for any potential yScale changes
         Object.entries(dataLines).forEach(([dataView, line]) => {
-            const data = dataView === "activeDurationMs" ? sortedData.activeDurationMs :
-                dataView === "distance" ? sortedData.distance : sortedData.pace
+            const currData = dataView === "activeDurationMs" ? data.durationData:
+                dataView === "distance" ? data.distanceData : data.paceData
             const yScale = yScales[dataView]
 
-            line.datum(data)
+            line.datum(currData)
                 .transition()
                 .attr("d", lineGenerator.y(d => yScale(d)))
                 .attr("stroke", getStrokeColor(dataView as DataView))
@@ -152,7 +120,7 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
     }
 
     useEffect(() => {
-        if (sortedData && chartRef.current) {
+        if (data && chartRef.current) {
             const svg = d3.select(chartRef.current)
             svg.selectAll("*").remove()
 
@@ -160,32 +128,32 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
                 .attr("transform", `translate(${margin.left},${margin.top})`)
 
             const xScale = d3.scaleLinear()
-                .domain([1, sortedData.activeDurationMs.length])
+                .domain([1, data.durationData.length])
                 .range([0, width])
 
             // Dynamic scale and data based on currDataView
             const yScales: YScales = {
-                activeDurationMs: getYScale(sortedData.activeDurationMs),
-                distance: getYScale(sortedData.distance),
-                pace: getYScale(sortedData.pace)
+                activeDurationMs: getYScale(data.durationData),
+                distance: getYScale(data.distanceData),
+                pace: getYScale(data.paceData)
             }
 
             const lineGenerator = d3.line<number>()
                 .x((_, i) => xScale(i + 1))
                 .y(d => yScales[currDataView](d))
-                .curve(d3.curveCardinal)
+                .curve(d3.curveLinear)
 
             const dataLines = {
                 activeDurationMs: chart.append("path")
-                    .datum(sortedData.activeDurationMs)
+                    .datum(data.durationData)
                     .attr("class", "data-line")
                     .attr("id", "activeDurationMs-line"),
                 distance: chart.append("path")
-                    .datum(sortedData.distance)
+                    .datum(data.distanceData)
                     .attr("class", "data-line")
                     .attr("id", "distance-line"),
                 pace: chart.append("path")
-                    .datum(sortedData.pace)
+                    .datum(data.paceData)
                     .attr("class", "data-line")
                     .attr("id", "pace-line")
             }
@@ -228,11 +196,21 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
                     dateText.style("opacity", 0)
                 })
                 .on("mousemove", (e) => mousemove(e, xScale, yScales, focusDot, focusText, dateText))
+                .on("click", (e) => {
+                    const x0 = Math.round(xScale.invert(d3.pointer(e)[0]))
+                    setCurrRun({
+                        id: data.dateAndIds[x0 - 1].id,
+                        startEpoch: data.dateAndIds[x0 - 1].date,
+                        activeDurationMs: data.durationData[x0 - 1],
+                        distance: data.distanceData[x0 - 1],
+                        pace: data.paceData[x0 - 1]
+                    })
+                })
 
         }
-    }, [sortedData, currDataView, getStrokeColor])
+    }, [currDataView, getStrokeColor])
 
-    function mousemove(event: MouseEvent, xScale: d3.ScaleLinear<number, number, never>, yScales: YScales,
+    function mousemove(event: MouseEvent, xScale: d3.ScaleLinear<number, number>, yScales: YScales,
                        focusDot: d3.Selection<SVGCircleElement, unknown, HTMLElement, any>,
                        focusText: d3.Selection<SVGTextElement, unknown, HTMLElement, any>,
                        dateText: d3.Selection<SVGTextElement, unknown, HTMLElement, any>) {
@@ -241,19 +219,19 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
 
         switch (currDataView) {
             case "activeDurationMs":
-                selectedData = sortedData.activeDurationMs[x0 - 1]
+                selectedData = data.durationData[x0 - 1]
                 displayText = formatMillisecondsToTime(selectedData)
                 break
             case "distance":
-                selectedData = sortedData.distance[x0 - 1]
+                selectedData = data.distanceData[x0 - 1]
                 displayText = `${selectedData.toFixed(2)} m`
                 break
             case "pace":
-                selectedData = sortedData.pace[x0 - 1]
+                selectedData = data.paceData[x0 - 1]
                 displayText = formatPace(selectedData)
                 break
             default:
-                selectedData = sortedData.activeDurationMs[x0 - 1]
+                selectedData = data.durationData[x0 - 1]
         }
 
         if (selectedData) {
@@ -265,8 +243,7 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
                 .attr("x", xScale(x0))
                 .attr("y", currentYScale(selectedData) - 15)
                 .style("opacity", 1)
-            // add the date to the bottom of the chart on hover
-            dateText.html(dates[x0 - 1])
+            dateText.html(data.dateAndIds[x0 - 1].date)
                 .attr("x", xScale(x0))
                 .attr("y", height + 25)
                 .style("opacity", 1)
@@ -278,17 +255,27 @@ const MultiLineChart = ({data}: { data: SimpleRun[] }) => {
     }
 
     return (
-        <div>
-            <svg ref={chartRef}></svg>
-            <div className={"flex gap-3 py-4 text-lg"}>
-                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-green ${currDataView==="activeDurationMs" && "bg-charts-green border-charts-green"}`}
-                        onClick={() => setCurrDataView("activeDurationMs")}>Duration</button>
-                <button  className={`btn px-4 py-2 border-4 rounded  font-medium border-charts-purple ${currDataView==="distance" && "bg-charts-purple"}`}
-                         onClick={() => setCurrDataView("distance")}>Distance</button>
-                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-red ${currDataView==="pace" && "bg-charts-red"}`}
-                        onClick={() => setCurrDataView("pace")}>Pace</button>
+        <div className={"flex gap-4"}>
+            <div className={"w-fit h-fit"}>
+                <svg ref={chartRef} className={"hover:cursor-pointer"}></svg>
+                <div className={"flex gap-3 py-4 text-lg"}>
+                    <button
+                        className={`btn px-4 py-2 border-4 rounded font-medium border-charts-green ${currDataView === "activeDurationMs" && "bg-charts-green border-charts-green"}`}
+                        onClick={() => setCurrDataView("activeDurationMs")}>Duration
+                    </button>
+                    <button
+                        className={`btn px-4 py-2 border-4 rounded  font-medium border-charts-purple ${currDataView === "distance" && "bg-charts-purple"}`}
+                        onClick={() => setCurrDataView("distance")}>Distance
+                    </button>
+                    <button
+                        className={`btn px-4 py-2 border-4 rounded font-medium border-charts-red ${currDataView === "pace" && "bg-charts-red"}`}
+                        onClick={() => setCurrDataView("pace")}>Pace
+                    </button>
+                </div>
             </div>
-
+            <div>
+                {currRun && <RunCard run={currRun}/>}
+            </div>
         </div>
     )
 }

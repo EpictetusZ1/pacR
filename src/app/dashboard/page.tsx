@@ -1,5 +1,6 @@
 import MultiLineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
+import { DateAndId, SimpleRun } from "@/types/Main.types";
 
 
 async function getUserRuns(): Promise<any> {
@@ -20,15 +21,45 @@ async function getUserRuns(): Promise<any> {
     if (!res) {
         throw new Error("Failed to fetch data")
     }
-    return res
+
+    let durationData: number[] = []
+    let distanceData: number[] = []
+    let paceData: number[] = []
+    let dateAndIds: DateAndId[] = []
+
+    // @ts-ignore
+    res.forEach((item: SimpleRun) => {
+        durationData.push(Number(item.activeDurationMs))
+        distanceData.push(Number(item.distance))
+        paceData.push(Number(item.pace))
+        dateAndIds.push({
+            date: new Date(item.startEpoch).toLocaleDateString('en-US', {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+            }),
+            id: item.id
+        })
+    })
+
+    return {
+        durationData,
+        distanceData,
+        paceData,
+        dateAndIds
+    }
 }
+
 
 const Dashboard = async () => {
     const data = await getUserRuns()
     return (
-        <div className={"h-screen w-screen p-8 flex flex-col items-center justify-start"}>
-            <h1 className={"text-5xl font-bold font-inter p-8"}>Run Data</h1>
-            <MultiLineChart data={data}/>
+        <div className={"h-screen w-screen p-8"}>
+            <h1 className={"text-5xl font-bold font-inter pt-0 pb-3 self-start"}>Run Data</h1>
+            <div className={"flex gap-4 items-start justify-start"}>
+                <MultiLineChart data={data}/>
+            </div>
+
         </div>
     )
 }
