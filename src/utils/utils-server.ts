@@ -11,6 +11,14 @@ export const formatRunData = (run: any): SimpleRun => {
     }
 }
 
+export const formatDate = (date: string): string => {
+    return new Date(date).toLocaleDateString('en-US', {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    })
+}
+
 export const formatMillisecondsToTime = (bigNum: number | NumberValue | bigint): string => {
     if (bigNum === 0) {
         return "0"

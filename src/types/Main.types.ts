@@ -52,6 +52,11 @@ export interface Moment {
     updatedAt: string
 }
 
+export interface DateAndId {
+    date: string,
+    id: string
+}
+
 export interface SimpleRun {
     id: string
     startEpoch: string

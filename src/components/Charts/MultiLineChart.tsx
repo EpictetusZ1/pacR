@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
 import { useRouter } from "next/navigation";
+import { DateAndId } from "@/types/Main.types";
 
 
 type DataView = "activeDurationMs" | "distance" | "pace"
@@ -20,9 +21,8 @@ interface MultiLineChartProps {
     durationData: number[],
     distanceData: number[],
     paceData: number[],
-    dates: string[]
+    dateAndIds: DateAndId[]
 }
-
 
 // TODO: Make a tiny view run modal, and have cursor: pointer on hover
 const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
@@ -189,7 +189,7 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
                 .on("mousemove", (e) => mousemove(e, xScale, yScales, focusDot, focusText, dateText))
                 .on("click", (e) => {
                     const x0 = Math.round(xScale.invert(d3.pointer(e)[0]))
-                    const runId = data.dates[x0 - 1]
+                    const runId = data.dateAndIds[x0 - 1].id
                     router.push(`/run/${runId}`)
                 })
 
@@ -229,7 +229,7 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
                 .attr("x", xScale(x0))
                 .attr("y", currentYScale(selectedData) - 15)
                 .style("opacity", 1)
-            dateText.html(data.dates[x0 - 1])
+            dateText.html(data.dateAndIds[x0 - 1].date)
                 .attr("x", xScale(x0))
                 .attr("y", height + 25)
                 .style("opacity", 1)

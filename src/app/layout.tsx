@@ -20,7 +20,7 @@ export default function RootLayout({children,}: Readonly<{ children: ReactNode }
       <html lang="en">
         <body className={inter.className}>
           <NavBar />
-          <main className={"px-8"}>
+          <main className={"px-16"}>
               {children}
           </main>
         </body>

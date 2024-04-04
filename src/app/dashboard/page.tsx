@@ -1,7 +1,7 @@
 import MultiLineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
 import RunCard from "@/components/RunCard/RunCard";
-import { SimpleRun } from "@/types/Main.types";
+import { DateAndId, SimpleRun } from "@/types/Main.types";
 
 
 async function getUserRuns(): Promise<any> {
@@ -26,25 +26,28 @@ async function getUserRuns(): Promise<any> {
     let durationData: number[] = []
     let distanceData: number[] = []
     let paceData: number[] = []
-    let dates: string[] = []
+    let dateAndIds: DateAndId[] = []
 
     // @ts-ignore
     res.forEach((item: SimpleRun) => {
         durationData.push(Number(item.activeDurationMs))
         distanceData.push(Number(item.distance))
         paceData.push(Number(item.pace))
-        dates.push(new Date(item.startEpoch).toLocaleDateString('en-US', {
-            day: "2-digit",
-            month: "long",
-            year: "numeric"
-        }))
+        dateAndIds.push({
+            date: new Date(item.startEpoch).toLocaleDateString('en-US', {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+            }),
+            id: item.id
+        })
     })
 
     return {
         durationData,
         distanceData,
         paceData,
-        dates
+        dateAndIds
     }
 }
 
