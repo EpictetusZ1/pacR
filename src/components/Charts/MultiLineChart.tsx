@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
-import { useRouter } from "next/navigation";
 import { DateAndId } from "@/types/Main.types";
+import RunCard from "@/components/RunCard/RunCard";
 
 
 type DataView = "activeDurationMs" | "distance" | "pace"
@@ -24,11 +24,20 @@ interface MultiLineChartProps {
     dateAndIds: DateAndId[]
 }
 
+type SRun = {
+    id: string
+    startEpoch: string
+    activeDurationMs: number
+    distance: number
+    pace: number
+
+}
+
 // TODO: Make a tiny view run modal, and have cursor: pointer on hover
 const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
     const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
+    const [currRun, setCurrRun] = useState<SRun | null>(null)
     const chartRef = useRef(null)
-    const router = useRouter()
 
     const getStrokeColor = (dataView: DataView) => {
         if (currDataView !== dataView) {
@@ -64,7 +73,6 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
             .style("overflow", "visible")
     }, [])
 
-
     function getYScale(data: number[]) {
         if (currDataView === "activeDurationMs") {
             return d3.scaleLinear()
@@ -75,6 +83,7 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
             .domain(d3.extent(data) as [number, number])
             .range([height, 0])
     }
+
     function updateYAxis(chart: D3Element, yScales: YScales) {
         chart.select(".y-axis").remove()
         const currentYScale = yScales[currDataView]
@@ -189,14 +198,19 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
                 .on("mousemove", (e) => mousemove(e, xScale, yScales, focusDot, focusText, dateText))
                 .on("click", (e) => {
                     const x0 = Math.round(xScale.invert(d3.pointer(e)[0]))
-                    const runId = data.dateAndIds[x0 - 1].id
-                    router.push(`/run/${runId}`)
+                    setCurrRun({
+                        id: data.dateAndIds[x0 - 1].id,
+                        startEpoch: data.dateAndIds[x0 - 1].date,
+                        activeDurationMs: data.durationData[x0 - 1],
+                        distance: data.distanceData[x0 - 1],
+                        pace: data.paceData[x0 - 1]
+                    })
                 })
 
         }
     }, [currDataView, getStrokeColor])
 
-    function mousemove(event: MouseEvent, xScale: d3.ScaleLinear<number, number, never>, yScales: YScales,
+    function mousemove(event: MouseEvent, xScale: d3.ScaleLinear<number, number>, yScales: YScales,
                        focusDot: d3.Selection<SVGCircleElement, unknown, HTMLElement, any>,
                        focusText: d3.Selection<SVGTextElement, unknown, HTMLElement, any>,
                        dateText: d3.Selection<SVGTextElement, unknown, HTMLElement, any>) {
@@ -241,17 +255,27 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
     }
 
     return (
-        <div>
-            <svg ref={chartRef} className={"hover:cursor-pointer"}></svg>
-            <div className={"flex gap-3 py-4 text-lg"}>
-                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-green ${currDataView==="activeDurationMs" && "bg-charts-green border-charts-green"}`}
-                        onClick={() => setCurrDataView("activeDurationMs")}>Duration</button>
-                <button  className={`btn px-4 py-2 border-4 rounded  font-medium border-charts-purple ${currDataView==="distance" && "bg-charts-purple"}`}
-                         onClick={() => setCurrDataView("distance")}>Distance</button>
-                <button className={`btn px-4 py-2 border-4 rounded font-medium border-charts-red ${currDataView==="pace" && "bg-charts-red"}`}
-                        onClick={() => setCurrDataView("pace")}>Pace</button>
+        <div className={"flex gap-4"}>
+            <div className={"w-fit h-fit"}>
+                <svg ref={chartRef} className={"hover:cursor-pointer"}></svg>
+                <div className={"flex gap-3 py-4 text-lg"}>
+                    <button
+                        className={`btn px-4 py-2 border-4 rounded font-medium border-charts-green ${currDataView === "activeDurationMs" && "bg-charts-green border-charts-green"}`}
+                        onClick={() => setCurrDataView("activeDurationMs")}>Duration
+                    </button>
+                    <button
+                        className={`btn px-4 py-2 border-4 rounded  font-medium border-charts-purple ${currDataView === "distance" && "bg-charts-purple"}`}
+                        onClick={() => setCurrDataView("distance")}>Distance
+                    </button>
+                    <button
+                        className={`btn px-4 py-2 border-4 rounded font-medium border-charts-red ${currDataView === "pace" && "bg-charts-red"}`}
+                        onClick={() => setCurrDataView("pace")}>Pace
+                    </button>
+                </div>
             </div>
-
+            <div>
+                {currRun && <RunCard run={currRun}/>}
+            </div>
         </div>
     )
 }

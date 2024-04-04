@@ -1,11 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-    mode: "jit",
-    purge: [
-      './public/**/*.html',
-      './src/**/*.{js,jsx,ts,tsx,vue}',
-    ],
+    // mode: "jit",
+    // purge: [
+    //   './public/**/*.html',
+    //   './src/**/*.{js,jsx,ts,tsx,vue}',
+    // ],
     content: [
         "./src/**/*.{js,ts,jsx,tsx,mdx}",
     ],

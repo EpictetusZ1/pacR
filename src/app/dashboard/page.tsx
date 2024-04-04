@@ -1,6 +1,5 @@
 import MultiLineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
-import RunCard from "@/components/RunCard/RunCard";
 import { DateAndId, SimpleRun } from "@/types/Main.types";
 
 
@@ -59,7 +58,6 @@ const Dashboard = async () => {
             <h1 className={"text-5xl font-bold font-inter pt-0 pb-3 self-start"}>Run Data</h1>
             <div className={"flex gap-4 items-start justify-start"}>
                 <MultiLineChart data={data}/>
-                <RunCard />
             </div>
 
         </div>

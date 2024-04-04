@@ -1,35 +1,14 @@
-import { prisma } from "../../../prisma";
-import { formatMillisecondsToTime, formatPace, formatRunData } from "@/utils/utils-server";
-import { Run } from "@prisma/client";
-
-
-async function getRun(): Promise<Run> {
-    const res = await prisma.run.findFirst({
-        // include: {
-        //     tags: true,
-        // }
-        // select: {
-        //     id: true,
-        //     activeDurationMs: true,
-        //     distance: true,
-        //     pace: true,
-        //     startEpoch: true,
-        // },
-    })
-
-    if (!res) {
-        throw new Error("Failed to fetch data")
-    }
-
-    return res
-}
+"use client"
+import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server";
+import { useRouter } from "next/navigation";
 
 
 // TODO: Create some optional UI to show all details that are possibly available, like heart rate, calories, etc.
-const RunCard = async () => {
-    const run = await getRun()
+const RunCard = ({run}: {run: any}) => {
+    const router = useRouter()
     return (
         <div
+            onClick={() => router.push(`/run/${run.id}`)}
             className="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
             <h5 className="mb-4 text-xl font-medium text-gray-500 dark:text-gray-400">{new Date(run.startEpoch).toLocaleDateString('en-US', {
                 day: "2-digit",
@@ -66,6 +45,6 @@ const RunCard = async () => {
         </div>
 
     )
-};
+}
 
-export default RunCard;
+export default RunCard

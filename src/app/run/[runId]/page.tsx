@@ -1,4 +1,3 @@
-import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode } from "react";
 import { prisma } from "../../../../prisma";
 import { formatDate, formatMillisecondsToTime, formatPace } from "@/utils/utils-server";
 
@@ -41,7 +40,7 @@ const Run = async ({params}: { params: { runId: string } }) => {
     }
 
     return (
-        <div className="p-5 space-y-6">
+        <div className="p-5 space-y-6 max-w-screen-lg">
             <h1 className="text-2xl font-bold">Run Details</h1>
             <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-700 mb-4">General Info</h2>
@@ -62,7 +61,7 @@ const Run = async ({params}: { params: { runId: string } }) => {
 
                     <p><b>Active Duration: </b>{formatMillisecondsToTime(data.activeDurationMs)}</p>
                     <p><b>Distance:</b> {data.distance.toFixed(2)} Km</p>
-                    <p><b>Pace: </b>{formatPace(data.pace)} / Km</p>
+                    <p><b>Pace: </b>{formatPace(data.pace)} /Km</p>
                     <p><b>Location: </b> {data.tags.location}</p>
                     <p><b>Terrain: </b> {data.tags.terrain}</p>
                 </div>
@@ -84,7 +83,7 @@ const Run = async ({params}: { params: { runId: string } }) => {
 
             <div>
                 <h2 className="text-xl font-semibold mb-2">Tags</h2>
-                <p className="text-gray-700">Name: {data.tags.name}</p>
+                {data.tags.name && (<p className="text-gray-700">Name: {data.tags.name}</p>)}
                 {/* TODO: Add notes */}
             </div>
         </div>
