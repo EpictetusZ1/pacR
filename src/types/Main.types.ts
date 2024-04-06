@@ -64,3 +64,11 @@ export interface SimpleRun {
     distance: number
     pace: string
 }
+
+export type SRunAsProps = {
+    id: string
+    startEpoch: string
+    activeDurationMs: number
+    distance: number
+    pace: number
+}

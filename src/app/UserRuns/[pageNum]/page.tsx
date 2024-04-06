@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatRunData } from "@/utils/utils-server";
 import RunTable from "@/components/RunTable/RunTable";
 import { SimpleRun } from "@/types/Main.types";
+import { MouseEvent } from "react";
 
 
 async function getUserRuns(pageNum: number): Promise<SimpleRun[]> {
@@ -34,10 +35,11 @@ const UserRuns = async ({ params }: { params: { pageNum: string} }) => {
     const userRuns = await getUserRuns(pageNum)
 
     return (
-        <div className={"p-5 h-screen w-screen contain-content flex flex-col content-center justify-center items-center"}>
-            <div className="relative overflow-hidden rounded-2xl">
+        <div className={"p-5 h-screen w-screen contain-content flex flex-col content-center justify-start items-center"}>
+            <h1 className={"text-4xl font-bold p-4"}>Your Runs:</h1>
+            {/*<div className="relative overflow-hidden rounded-2xl">*/}
                 <RunTable runs={userRuns} />
-            </div>
+            {/*</div>*/}
             <div className="w-80 h-12 px-1 flex gap-1 justify-between space-x-2 relative">
                 {pageNum > 1 && (
                     <Link href={`/UserRuns/${pageNum - 1}`} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l absolute bottom-0 left-0">

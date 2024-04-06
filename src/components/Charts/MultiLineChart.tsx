@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import { formatMillisecondsToTime, formatPace } from "@/utils/utils-server"
-import { DateAndId } from "@/types/Main.types";
+import { DateAndId, SRunAsProps } from "@/types/Main.types";
 import RunCard from "@/components/RunCard/RunCard";
 
 
@@ -24,19 +24,12 @@ interface MultiLineChartProps {
     dateAndIds: DateAndId[]
 }
 
-type SRun = {
-    id: string
-    startEpoch: string
-    activeDurationMs: number
-    distance: number
-    pace: number
 
-}
 
 // TODO: Make a tiny view run modal, and have cursor: pointer on hover
 const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
     const [currDataView, setCurrDataView] = useState<DataView>("activeDurationMs")
-    const [currRun, setCurrRun] = useState<SRun | null>(null)
+    const [currRun, setCurrRun] = useState<SRunAsProps | null>(null)
     const chartRef = useRef(null)
 
     const getStrokeColor = (dataView: DataView) => {

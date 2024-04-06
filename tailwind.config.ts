@@ -14,11 +14,11 @@ const config: Config = {
             colors:{
                 white: "#FFF",
                 black: "#1B1B1B",
-                taupe: "#7e6c6cff",
-                lightRed: "#f87575ff",
-                melon: "#ffa9a3ff",
-                soft: "#b9e6ffff",
-                cornflower: "#5c95ffff",
+                dBlue: "#3c2edd",
+                misty: "#f5dddd",
+                orangeWheel: "#f77f00",
+                darkCyan: "#048a81",
+                roseBonbon: "#de4e9f",
                 charts: {
                     green: "#72F67F",
                     purple: "#7F72F6",

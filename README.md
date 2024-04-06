@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div align="center">
+
+## Your Project Name
+
+<img src="./src/assets/yourProjectBanner.png" alt="your project banner">
+
+</div>
+
+### Table Of Contents:
+1. [Live Deployment](#link-to-deployment)
+2. [Getting Started](#getting-started)
+3. [Description](#description)
+4. [Pictures](#pictures)
+5. [Functionality](#functionality)
+6. [Technologies Used](#technologies-used)
+7. [Things I Learned](#things-i-learned)
+8. [License](#license)
+9. [Acknowledgements](#acknowledgements)
+
+### Link To Deployment
+🖥 &nbsp; View a live demo of this project at: [Your Project Name](your-project-link)
+
+<sup>[Back to top](#table-of-contents)</sup>
 
 ## Getting Started
 
-First, run the development server:
+1. ⬇️ Clone the repository to your local machine
+   ```shell
+   git clone git@github.com:EpictetusZ1/PacR.git
+   ```
+2. Install project dependencies with npm
+   ```shell
+   npm install
+   ```
+3. 🏃‍ Run project
+   ```shell
+   npm run start
+   ```
+<sup>[Back to top](#table-of-contents)</sup>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Description
+An assignment from [The Odin Project](https://www.theodinproject.com/)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The motivation of this project was to re-create a site and some of its functionality from scratch, using the current live version of it as a template.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Project Planning:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+I have attempted to be as thorough as possible in the planning phase of this project. The following is the result of that effort.
 
-## Learn More
+<img src="src/assets/features-and-entities.png" alt="features and entities" width="500px">
 
-To learn more about Next.js, take a look at the following resources:
+Project architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<img src="src/assets/project-architecture.png" alt="project architecture" width="500px">
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+*Note:* The project did not adhere to this plan verbatim, however, it provided an incredibly useful map to follow during development and helped me to build a well-structured project.
 
-## Deploy on Vercel
+<sup>[Back to top](#table-of-contents)</sup>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Functionality
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Google Authentication
+- Persistent "Watch later" list of movies, with ability to add and remove items at will
+- A Global (app-level) state management using dynamic data from an API, Redux, and Firebase Firestore
+- A Review system that lets any unique user leave a review on a movie to be seen by all others
+- Review protection, can only edit review that was written by you
+- Dynamically generated data from an API, the site has no data or assets (aside from icons and svgs) of its own
+
+<sup>[Back to top](#table-of-contents)</sup>
+
+## Technologies Used
+
+- Next.js 
+- TypeScript
+- Tailwind CSS
+- d3.js
+- Supabase
+- Postgres
+
+<sup>[Back to top](#table-of-contents)</sup>
+
+## Things I Learned
+
+
+- Client and server side permissions and validations
+
+<sup>[Back to top](#table-of-contents)</sup>
+
+## License
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+<sup>[Back to top](#table-of-contents)</sup>
+
+## Acknowledgements
+
+This repo was made possible by the discovery of a wonderful blog post from Shailendra Bhatt. I highly recommend checking it out if you are interested in working with APIs in the future.
+1. [Extracting running data out of NRC/Nike + (Nike Run Club) using API’s](https://bhattshailendra.medium.com/extracting-running-data-out-of-nrc-nike-nike-run-club-using-apis-bcee76a714c3)
