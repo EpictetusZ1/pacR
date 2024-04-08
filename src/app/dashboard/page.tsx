@@ -1,11 +1,16 @@
 import MultiLineChart from "@/components/Charts/MultiLineChart";
 import { prisma } from "../../../prisma";
 import { DateAndId, SimpleRun } from "@/types/Main.types";
+import { auth } from "@/auth";
+import { redirect } from 'next/navigation'
 
 
-async function getUserRuns(): Promise<any> {
+
+async function getUserRuns(userId: string): Promise<any> {
     const res = await prisma.run.findMany({
-        take: 200,
+        where: {
+            userId: userId,
+        },
         select: {
             id: true,
             activeDurationMs: true,
@@ -52,7 +57,11 @@ async function getUserRuns(): Promise<any> {
 
 
 const Dashboard = async () => {
-    const data = await getUserRuns()
+    const session = await auth()
+    if (!session) {
+        redirect("/api/auth/signIn")
+    }
+    const data = await getUserRuns(session?.user?.id!)
     return (
         <div className={"h-screen w-screen p-8"}>
             <h1 className={"text-5xl font-bold font-inter pt-0 pb-3 self-start"}>Run Data</h1>

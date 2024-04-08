@@ -16,14 +16,21 @@ const Terrain = {
     unknown : 'unknown'
 }
 
+const myId ="29adb6f9-905a-4594-8d56-b88e694db89e"
+
 const seed = async () => {
     const prisma = new PrismaClient()
     const runs = readJsonFiles(directoryPath)
-                        .filter(run => run.type === "run")
+        .filter(run => run.type === "run")
 
     const runCreations = runs.map((run) => {
         const runData = {
             id: run.id,
+            User: {
+                connect: {
+                    id: myId
+                }
+            },
             startEpoch: new Date(run.start_epoch_ms),
             endEpoch: new Date(run.end_epoch_ms),
             activeDurationMs: run.active_duration_ms,
@@ -64,12 +71,14 @@ const seed = async () => {
                 })),
             },
             metrics: {
-                create: run.metrics.map(metric => ({
-                    type: metric.type,
-                    unit: metric.unit.toUpperCase(),
-                    source: metric.source,
-                    values: metric.values,
-                })),
+                create: run.metrics
+                    .filter(metric => metric.type !== "horizontal_accuracy" && metric.type !== "vertical_accuracy" && metric.type !== "nikefuel")
+                    .map(metric => ({
+                        type: metric.type,
+                        unit: metric.unit.toUpperCase(),
+                        source: metric.source,
+                        values: metric.values,
+                    })),
             },
         }
         return prisma.run.create({ data: runData })

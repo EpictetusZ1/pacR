@@ -1,11 +1,20 @@
 import { prisma } from "../../../../prisma";
 import { formatDate, formatMillisecondsToTime, formatPace } from "@/utils/utils-server";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 
-async function getRunData(runId: string): Promise<any> {
+async function getRunData(runId: string, userId: string): Promise<any> {
     const res = await prisma.run.findFirst({
         where: {
-            id: runId
+            AND: [
+                {
+                    id: runId
+                },
+                {
+                    userId: userId
+                }
+            ]
         },
         include: {
             summaries: true,
@@ -20,7 +29,11 @@ async function getRunData(runId: string): Promise<any> {
 }
 
 const Run = async ({params}: { params: { runId: string } }) => {
-    const data = await getRunData(params.runId)
+    const session = await auth()
+    if (!session) {
+        redirect("/api/auth/signIn")
+    }
+    const data = await getRunData(params.runId, session?.user?.id!)
     const formatTags = (tagName: string | number) => {
         if (typeof tagName === "number") return tagName
         const pattern = /[_-]/g

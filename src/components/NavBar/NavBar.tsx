@@ -30,7 +30,7 @@ const NavBar = () => {
                             <div className="flex space-x-4">
                                 <Link href={"/"} className="bg-gray-900 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">Home</Link>
                                 <Link href={"/dashboard"} className="bg-gray-900  hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
-                                <Link href={"/UserRuns/1"} className="bg-gray-900  hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">My Runs</Link>
+                                <Link href={"/userRuns/1"} className="bg-gray-900  hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">My Runs</Link>
                             </div>
                         </div>
                     </div>

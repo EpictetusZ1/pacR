@@ -18,20 +18,24 @@ export const {
             clientSecret: process.env.GITHUB_SECRET
         })
     ],
-
     callbacks: {
-        async session({ session, user }) {
-            console.log("Session")
-            console.log("user")
-            console.log(user)
-            console.log(session)
-            // return {
-            //     ...session,
-            //     user: {
-            //         ...session.user,
-            //         id: user.id,
-            //     },
-            // }
+        async session({ session, user }): Promise<any> {
+            if (session.user.email) {
+                let userRecord = await prisma.user.findUnique({
+                    where: {
+                        email: session.user.email,
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        image: true,
+                    }
+                })
+                if (userRecord) {
+                    session.user.id = userRecord.id.toString()
+                }
+            }
             return session
         },
         async signIn({ user, account, profile }) {
@@ -41,7 +45,7 @@ export const {
                     where: {
                         email,
                     },
-                });
+                })
 
                 if (!userRecord) {
                     // User not found, create a new user
@@ -54,15 +58,14 @@ export const {
                     })
                 }
 
-                // Optional: Attach additional data to the user object
-                // This is useful if you want to access it in other callbacks
+                // Attach additional data to the user object
                 if (userRecord) {
                     user.id = userRecord.id.toString()
                 }
 
-                return !!userRecord;
+                return !!userRecord
             }
-            return false; // Deny sign in if email is not provided
+            return false
         },
     },
 })
