@@ -3,11 +3,12 @@ import type { Config } from "tailwindcss";
 const config: Config = {
     // mode: "jit",
     // purge: [
-    //   './public/**/*.html',
-    //   './src/**/*.{js,jsx,ts,tsx,vue}',
+    //   "./public/**/*.html",
+    //   "./src/**/*.{js,jsx,ts,tsx,vue}",
     // ],
     content: [
-        "./src/**/*.{js,ts,jsx,tsx,mdx}",
+        "./src/app/**/*.{js,ts,jsx,tsx}",
+        "./src/components/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
         extend: {
