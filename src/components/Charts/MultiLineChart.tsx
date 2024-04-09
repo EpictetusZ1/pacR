@@ -248,7 +248,7 @@ const MultiLineChart = ({data}: { data: MultiLineChartProps }) => {
     }
 
     return (
-        <div className={"flex gap-4"}>
+        <div className={"flex flex-wrap gap-4"}>
             <div className={"w-fit h-fit"}>
                 <svg ref={chartRef} className={"hover:cursor-pointer"}></svg>
                 <div className={"flex gap-3 py-4 text-lg"}>

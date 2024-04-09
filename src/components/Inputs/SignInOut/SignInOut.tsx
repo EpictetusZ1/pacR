@@ -10,7 +10,7 @@ const SignInOut = async () => {
                           "use server"
                           await signOut()
                      }}>
-                          <button className="bg-darkCyan hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Sign Out</button>
+                          <button className="bg-darkCyan-500 hover:bg-darkCyan-400 text-white font-bold py-2 px-4 rounded">Sign Out</button>
                      </form>
                </div>
             ) : (
@@ -19,7 +19,7 @@ const SignInOut = async () => {
                         "use server"
                         await signIn()
                     }}>
-                        <button className="bg-darkCyan hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Sign In</button>
+                        <button className="bg-darkCyan-500 hover:bg-darkCyan-400 text-white font-bold py-2 px-4 rounded">Sign In</button>
                     </form>
                 </div>
 

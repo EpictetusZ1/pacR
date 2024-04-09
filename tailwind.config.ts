@@ -18,7 +18,11 @@ const config: Config = {
                 dBlue: "#3c2edd",
                 misty: "#f5dddd",
                 orangeWheel: "#f77f00",
-                darkCyan: "#048a81",
+                darkCyan: {
+                    400: "#00a6a6",
+                    500:  "#048a81",
+                    600: "#01786e",
+                },
                 roseBonbon: "#de4e9f",
                 charts: {
                     green: "#72F67F",

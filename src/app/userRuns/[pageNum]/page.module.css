@@ -1,0 +1,32 @@
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 0.5fr 0.5fr;
+    gap: 1rem 2rem;
+    grid-auto-flow: row;
+    grid-template-areas:
+    "table runCard"
+    "table ."
+    "table ."
+    "nav .";
+}
+
+.table {
+    padding: 1rem 0 0 0;
+    grid-area: table;
+    height: min-content;
+}
+
+.runCard {
+    grid-area: runCard;
+    padding: 1rem 0;
+}
+
+.nav {
+    grid-area: nav;
+    height: fit-content;
+    display: flex;
+    /*reverse flex*/
+    justify-content: space-between;
+}
+

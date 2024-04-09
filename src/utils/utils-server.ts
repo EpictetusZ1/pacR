@@ -19,6 +19,18 @@ export const formatDate = (date: string): string => {
     })
 }
 
+// Remove any dashes or underscores and capitalize the first letter of each word
+export const toTitleCase = (str: string) => {
+    str = str.replace(/[_-]/g, " ")
+    let words = str.split(" ")
+    return words.map((word: string) => {
+        return word
+            .replace(/\b(\w)/g, s => s.toUpperCase())
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+    }).join(" ").trim()
+}
+
+
 export const formatMillisecondsToTime = (bigNum: number | NumberValue | bigint): string => {
     if (bigNum === 0) {
         return "0"
