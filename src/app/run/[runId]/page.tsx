@@ -21,11 +21,37 @@ async function getRunData(runId: string, userId: string): Promise<any> {
             summaries: true,
             tags: true,
             moments: true,
+            metrics: true
         }
     })
     if (!res) {
         throw new Error("Failed to fetch data")
     }
+
+    if (res.metrics) {
+        const latMetrics = res.metrics.find((metric: any) => metric.type === "latitude")
+        const longMetrics = res.metrics.find((metric: any) => metric.type === "longitude")
+
+        let zippedMetrics: {
+            lt: any
+            lg: any
+        }[] = []
+        if (latMetrics && longMetrics) {
+            // @ts-ignore
+            latMetrics["values"].forEach((lat: any, i: number) => {
+                zippedMetrics.push({
+                    lt: lat.value,
+                    // @ts-ignore
+                    lg: longMetrics["values"][i].value
+                })
+            })
+            return {
+                ...res,
+                metrics: zippedMetrics
+            }
+        }
+    }
+
     return res
 }
 
@@ -49,12 +75,14 @@ const TagsComponent = ({ tags }: {tags: any}) => {
     )
 }
 
+
 const Run = async ({params}: { params: { runId: string } }) => {
     const session = await auth()
     if (!session) {
         redirect("/api/auth/signIn")
     }
     const data = await getRunData(params.runId, session?.user?.id!)
+
     const formatTags = (tagName: string | number) => {
         if (typeof tagName === "number") return tagName
         switch (tagName) {
@@ -67,10 +95,11 @@ const Run = async ({params}: { params: { runId: string } }) => {
         }
     }
 
+
     return (
         <div className="py-16 px-5 space-y-6 h-auto">
             <h1 className="text-6xl font-black bg-gradient-to-br from-dBlue to-roseBonbon bg-clip-text text-transparent">Run Details</h1>
-            <div className="flex mb-8 gap-2 w-full">
+            <div className="flex mb-8 gap-4 w-full">
                 <div className={"w-1/3"}>
                     <h2 className="text-2xl font-bold text-darkCyan-600 mb-4">General Info</h2>
                     <div className="flex flex-col gap-2 text-black p-4 rounded-lg shadow">
@@ -80,13 +109,14 @@ const Run = async ({params}: { params: { runId: string } }) => {
                              <p><b>Start Time: </b>{new Date(data.startEpoch).toLocaleTimeString([], {
                                  hour: '2-digit',
                                  minute: '2-digit'
-                             })}</p>
-                    <p><b>End Time: </b>{new Date(data.endEpoch).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })}</p>
-                    </span>
-
+                             })}
+                             </p>
+                            <p>
+                                <b>End Time: </b>{new Date(data.endEpoch).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit' })}
+                            </p>
+                        </span>
                         <p><b>Active Duration: </b>{formatMillisecondsToTime(data.activeDurationMs)}</p>
                         <p><b>Distance:</b> {data.distance.toFixed(2)} Miles</p>
                         <p><b>Pace: </b>{formatPace(data.pace)} Mph</p>
@@ -94,12 +124,11 @@ const Run = async ({params}: { params: { runId: string } }) => {
                         <p><b>Terrain: </b> {data.tags.terrain}</p>
                     </div>
                 </div>
-
-                <Mapbox/>
+                <Mapbox coords={data.metrics}/>
             </div>
 
             <div className={"py-4"}>
-            <h2 className="text-xl font-bold text-darkCyan-600 mb-4">Metrics</h2>
+                <h2 className="text-xl font-bold text-darkCyan-600 mb-4">Metrics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {data.summaries.map((summary: any) => (
                         <div key={summary.id}
