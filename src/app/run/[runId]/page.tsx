@@ -35,21 +35,40 @@ async function getRunData(runId: string, userId: string): Promise<any> {
         let zippedMetrics: {
             lt: any
             lg: any
+            time: any
         }[] = []
+
         if (latMetrics && longMetrics) {
             // @ts-ignore
             latMetrics["values"].forEach((lat: any, i: number) => {
                 zippedMetrics.push({
                     lt: lat.value,
                     // @ts-ignore
-                    lg: longMetrics["values"][i].value
+                    lg: longMetrics["values"][i].value,
+                    time: lat.start_epoch_ms
                 })
             })
+
+            let miles: ({ mile: any; time: any; } | null)[] = []
+            if (res.moments) {
+                // add moment.value and moment.time to miles array
+                res.moments.forEach((moment: any) => {
+                    if (moment.key === "split_mile") {
+                        miles.push({
+                            mile: moment.value,
+                            // convert timestamp like this: 2021-06-23T20:17:47.189Z to start epoch ms
+                            time: new Date(moment.timestamp).getTime()
+                        })
+                    }
+                })
+            }
             return {
                 ...res,
-                metrics: zippedMetrics
+                metrics: zippedMetrics,
+                miles: miles
             }
         }
+
     }
 
     return res
@@ -124,7 +143,7 @@ const Run = async ({params}: { params: { runId: string } }) => {
                         <p><b>Terrain: </b> {data.tags.terrain}</p>
                     </div>
                 </div>
-                <Mapbox coords={data.metrics}/>
+                <Mapbox coords={data.metrics} miles={data.miles}/>
             </div>
 
             <div className={"py-4"}>

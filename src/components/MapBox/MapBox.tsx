@@ -1,4 +1,5 @@
 "use client"
+import styles from "./Mapbox.module.css"
 import "mapbox-gl/dist/mapbox-gl.css"
 // import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css"
 import { useEffect, useRef } from "react"
@@ -6,27 +7,26 @@ import { useEffect, useRef } from "react"
 type Coords = {
     lt: number
     lg: number
-
+    time: string
 }
 interface IMapProps {
     coords: Coords[]
+    miles: {mile: string, time: number}[]
 }
 
-const Mapbox = ({coords}: IMapProps) => {
+const Mapbox = ({coords, miles}: IMapProps) => {
     const mapContainer = useRef<any>(null)
     const mapRef = useRef<any>(null)
-
     const geoJson = {
         type: 'Feature',
         properties: {},
         geometry: {
             type: 'LineString',
-            coordinates: coords.map((coord: {lt: number, lg: number}) => [coord.lg, coord.lt])
+            coordinates: coords.map((coord: {lt: number, lg: number, time: string}) => [coord.lg, coord.lt, coord.time])
         }
     };
 
     useEffect(() => {
-
         const runMidPoint = (coords: Coords[]) => {
             const lat = coords.map((coord: Coords) => coord.lt)
             const lng = coords.map((coord: Coords) => coord.lg)
@@ -43,7 +43,6 @@ const Mapbox = ({coords}: IMapProps) => {
             mapContainer.current.style.height = "500px"
 
             let midPoint = runMidPoint(coords)
-            console.log(midPoint)
             mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN!
             mapRef.current = new mapboxgl.Map({
                 container: mapContainer.current, // container ID
@@ -53,11 +52,29 @@ const Mapbox = ({coords}: IMapProps) => {
                 //     [mapElement.bBox.sw.lng, mapElement.bBox.sw.lat],
                 //     [mapElement.bBox.ne.lng, mapElement.bBox.ne.lat],
                 // ],
-                center: [runMidPoint(coords).lng, runMidPoint(coords).lat],
+                center: [midPoint.lng, midPoint.lat],
                 preserveDrawingBuffer: true,
             })
 
+            const mileCoords = miles.map((mile) => {
+                return coords.reduce((prev, curr) => {
+                    // @ts-ignore
+                    return Math.abs(curr.time - mile.time) < Math.abs(prev.time - mile.time) ? curr : prev
+                })
+            })
 
+            const addMarkers = (mileCoords: Coords[]) => {
+                mileCoords.forEach((mile, index) => {
+                    const el = document.createElement('div')
+                    el.className = styles.mapMarker
+                    el.textContent = `${index + 1} mi`
+                    new mapboxgl.Marker(el)
+                        .setLngLat([mile.lg, mile.lt])
+                        .addTo(mapRef.current)
+                })
+            }
+
+            addMarkers(mileCoords)
             mapRef.current.on("load", () => {
                 mapRef.current.addSource("route", {
                     type: "geojson",

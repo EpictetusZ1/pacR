@@ -1,0 +1,8 @@
+.mapMarker {
+    background-color: white;
+    border-radius: 0.7rem;
+    font-weight: bold;
+    line-height: 0.8rem;
+    padding: 1px 6px;
+    box-shadow: 0 0 5px 0 rgba(0,0,0,0.5);
+}
