@@ -22,7 +22,7 @@ const openai = new OpenAI({
 //     return Response.json({ message: chatCompletion})
 // }
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req: NextApiRequest) {
     if (req.method === "POST") {
         const { runsData, goalType } = req.body;
 
@@ -38,13 +38,14 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
                 ]
             })
 
-            res.status(200).json({ advice: chatCompletion.choices[0].message.content })
+            // res.status(200).json({ advice: chatCompletion.choices[0].message.content })
+            return Response.json({ advice: chatCompletion.choices[0].message.content })
+
         } catch (error) {
             console.error("OpenAI API error:", error)
-            res.status(500).json({ error: "Failed to fetch advice from OpenAI API." })
+            return Response.json({ error: "Failed to fetch data" })
         }
     } else {
-        res.setHeader("Allow", ["POST"])
-        res.status(405).end(`Method ${req.method} Not Allowed`)
+        return Response.json({ error: "Invalid request method" })
     }
 }
