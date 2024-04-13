@@ -118,8 +118,8 @@ const Run = async ({params}: { params: { runId: string } }) => {
     return (
         <div className="py-16 px-5 space-y-6 h-auto">
             <h1 className="text-6xl font-black bg-gradient-to-br from-dBlue to-roseBonbon bg-clip-text text-transparent">Run Details</h1>
-            <div className="flex mb-8 gap-4 w-full">
-                <div className={"w-1/3"}>
+            <div className="flex flex-col lg:flex-row sm:gap-y-5 md:justify-center md:items-center lg:justify-start mb-8 gap-x-6 w-full  ">
+                <div className={"w-full xl:w-1/3"}>
                     <h2 className="text-2xl font-bold text-darkCyan-600 mb-4">General Info</h2>
                     <div className="flex flex-col gap-2 text-black p-4 rounded-lg shadow">
                         <p><b>Run ID:</b> {data.id}</p>
