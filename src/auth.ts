@@ -15,7 +15,8 @@ export const {
     providers: [
         GitHub({
             clientId: process.env.GITHUB_ID,
-            clientSecret: process.env.GITHUB_SECRET
+            clientSecret: process.env.GITHUB_SECRET,
+            // allowDangerousEmailAccountLinking: true // Dev only so I can wipe the table and re-link stuff
         })
     ],
     callbacks: {

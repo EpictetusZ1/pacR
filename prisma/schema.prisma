@@ -33,7 +33,6 @@ model Summary {
   runId      String     @map("run_id")
   metricType MetricType @map("metric_type")
   summary    String?
-  source     String
   value      Float
   Run        Run        @relation(fields: [runId], references: [id])
 }
@@ -47,22 +46,18 @@ enum Terrain {
 }
 
 model Tags {
-  id                  String   @id @default(uuid())
-  name                String?  @map("name")
-  goalType            String?  @map("goal_type")
-  originalActivityId  String?  @map("original_activity_id")
-  recordingAppVersion String?  @map("recording_app_version")
-  recordingSource     String?  @map("recording_source")
-  syncAppVersion      String?  @map("sync_app_version")
-  syncSource          String?  @map("sync_source")
-  temperature         Float?
-  weather             String?
-  location            String?  @default("outdoors")
-  note                String?
-  rpe                 Int? // Rate of perceived exertion
-  shoeId              String?  @map("shoe_id")
-  terrain             Terrain? @default(unknown)
-  Run                 Run[]
+  id                 String   @id @default(uuid())
+  name               String?  @map("name")
+  goalType           String?  @map("goal_type")
+  originalActivityId String?  @map("original_activity_id")
+  temperature        Float?
+  weather            String?
+  location           String?  @default("outdoors")
+  note               String?
+  rpe                Int?
+  shoeId             String?  @map("shoe_id")
+  terrain            Terrain? @default(unknown)
+  Run                Run[]
 }
 
 enum MetricType {
@@ -78,8 +73,8 @@ enum MetricType {
   descent
   ascent
   longitude
-  horizontal_accuracy
-  vertical_accuracy
+  // horizontal_accuracy
+  // vertical_accuracy
   stars
   rpe
 }
@@ -93,7 +88,7 @@ enum Units {
   BPM
   M
   DD
-  FUEL
+  // FUEL
   STAR
   RATING
 }
@@ -103,7 +98,7 @@ model Metric {
   runId  String     @map("run_id")
   type   MetricType
   unit   Units
-  source String
+  // source String
   values Json
 
   Run Run @relation(fields: [runId], references: [id])
@@ -117,7 +112,7 @@ model Moment {
   key       String
   value     String
   timestamp DateTime @db.Timestamptz(6)
-  source    String
+  // source    String
 
   Run Run @relation(fields: [runId], references: [id])
 

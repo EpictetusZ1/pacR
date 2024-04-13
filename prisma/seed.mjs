@@ -1,22 +1,36 @@
-import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import path from 'path';
+import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 const directoryPath = "/Users/vermilion/Documents/PacR/Ref/"
 
 const readJsonFiles = (dir) => {
-    return fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => {
-        return JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'))
+    return fs.readdirSync(dir).filter(file => file.endsWith(".json")).map(file => {
+        return JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"))
     })
 }
 
 const Terrain = {
-    road:'road',
-    trail : 'trail',
-    track : 'track',
-    unknown : 'unknown'
+    road:"road",
+    trail : "trail",
+    track : "track",
+    unknown : "unknown"
 }
 
-const myId ="29adb6f9-905a-4594-8d56-b88e694db89e"
+const myId ="e63d177d-160e-432b-bbcd-7056a5f099f7"
+
+const excludedMetrics = [
+    "calories",
+    "steps",
+    "nikefuel",
+    "horizontal_accuracy",
+    "vertical_accuracy"
+]
+
+// Function to be passed to filter()
+function filterMetrics(metric) {
+    // Check if the metric's type is not in the excludedMetrics array
+    return !excludedMetrics.includes(metric.type);
+}
 
 const seed = async () => {
     const prisma = new PrismaClient()
@@ -40,7 +54,7 @@ const seed = async () => {
                 create: run.summaries.map(summary => ({
                     metricType: summary.metric,
                     summary: summary.summary,
-                    source: summary.source,
+                    // source: summary.source,
                     value: summary.value,
                 })),
             },
@@ -49,10 +63,10 @@ const seed = async () => {
                     name: run.tags["com.nike.name"],
                     goalType: run.tags["com.nike.running.goaltype"],
                     originalActivityId: run.tags["com.nike.running.originalactivityid"],
-                    recordingAppVersion: run.tags["com.nike.running.recordingappversion"],
-                    recordingSource: run.tags["com.nike.running.recordingsource"],
-                    syncAppVersion: run.tags["com.nike.running.syncappversion"],
-                    syncSource: run.tags["com.nike.running.syncsource"],
+                    // recordingAppVersion: run.tags["com.nike.running.recordingappversion"],
+                    // recordingSource: run.tags["com.nike.running.recordingsource"],
+                    // syncAppVersion: run.tags["com.nike.running.syncappversion"],
+                    // syncSource: run.tags["com.nike.running.syncsource"],
                     temperature: parseFloat(run.tags["com.nike.temperature"]),
                     weather: run.tags["com.nike.weather"],
                     location: run.tags["location"],
@@ -67,17 +81,17 @@ const seed = async () => {
                     key: moment.key,
                     value: moment.value,
                     timestamp: new Date(moment.timestamp),
-                    source: moment.source,
+                    // source: moment.source,
                 })),
             },
             metrics: {
                 create: run.metrics
-                    .filter(metric => metric.type !== "horizontal_accuracy" && metric.type !== "vertical_accuracy" && metric.type !== "nikefuel")
+                    .filter(filterMetrics)
                     .map(metric => ({
                         type: metric.type,
                         unit: metric.unit.toUpperCase(),
-                        source: metric.source,
                         values: metric.values,
+                        // source: metric.source,
                     })),
             },
         }
@@ -103,11 +117,11 @@ seed().then(r => {
 })
 
 const handleErrorMessage = (error) => {
-    const lines = error.stack.split('\n')
+    const lines = error.stack.split("\n")
     const totalLines = lines.length
     if (totalLines > 80) {
-        console.log(lines.slice(0, 40).join('\n'))
-        console.log(lines.slice(-40).join('\n'))
+        console.log(lines.slice(0, 40).join("\n"))
+        console.log(lines.slice(-40).join("\n"))
     } else {
         console.log(error.stack)
         console.log(error.message)
