@@ -22,7 +22,7 @@ const openai = new OpenAI({
 //     return Response.json({ message: chatCompletion})
 // }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         const { runsData, goalType } = req.body;
 
