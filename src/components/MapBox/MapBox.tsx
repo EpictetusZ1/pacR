@@ -25,7 +25,6 @@ const Mapbox = ({coords, miles}: IMapProps) => {
         }
     }
 
-
     const runMidPoint = (coords: Coords[]) => {
         const lat = coords.map((coord: Coords) => coord.lt)
         const lng = coords.map((coord: Coords) => coord.lg)

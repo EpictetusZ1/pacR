@@ -3,6 +3,7 @@ import { formatDate, formatMillisecondsToTime, formatPace, toTitleCase } from "@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Mapbox from "@/components/MapBox/MapBox";
+import { log } from "node:util";
 
 
 async function getRunData(runId: string, userId: string): Promise<any> {
