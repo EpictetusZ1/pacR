@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import SignInOut from "@/components/Inputs/SignInOut/SignInOut";
+import Ai from "@/components/Inputs/Ai/Ai";
 
 export default function Home() {
     return (
@@ -8,11 +9,12 @@ export default function Home() {
                 View All Runs
             </Link>
             <Link href={"/dashboard"} className="bg-darkCyan-500 hover:bg-darkCyan-400 text-white font-bold py-2 px-4 rounded">
-               View Run Graph
+                View Run Graph
             </Link>
             <Link href="/src/app/uploadRuns/" className="bg-darkCyan-500 hover:bg-darkCyan-400 text-white font-bold py-2 px-4 rounded">
                 Upload Runs
             </Link>
+            <Ai />
             <div>
                 <SignInOut />
             </div>
