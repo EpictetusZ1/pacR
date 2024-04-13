@@ -27,7 +27,6 @@ export async function GET(req: Request) {
     if (req.method === "POST") {
         // const { runsData, goalType } = req.body
 
-        // Here you might summarize the runs data
         // const summary = `The user's average pace over the last two months is ${runsData.averagePace} minutes per kilometer, and their average distance is ${runsData.averageDistance} kilometers. Goal type: ${goalType}.`
 
         const summary = ""
