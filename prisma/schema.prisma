@@ -13,7 +13,6 @@ model Run {
   startEpoch       DateTime  @map("start_epoch_ms") @db.Timestamptz(6)
   endEpoch         DateTime  @map("end_epoch_ms") @db.Timestamptz(6)
   activeDurationMs BigInt    @map("active_duration_ms")
-  // Embed key run data directly in the run object
   distance         Float
   pace             Float
   summaries        Summary[]
@@ -73,8 +72,6 @@ enum MetricType {
   descent
   ascent
   longitude
-  // horizontal_accuracy
-  // vertical_accuracy
   stars
   rpe
 }
@@ -88,7 +85,6 @@ enum Units {
   BPM
   M
   DD
-  // FUEL
   STAR
   RATING
 }
@@ -98,7 +94,6 @@ model Metric {
   runId  String     @map("run_id")
   type   MetricType
   unit   Units
-  // source String
   values Json
 
   Run Run @relation(fields: [runId], references: [id])
@@ -112,11 +107,32 @@ model Moment {
   key       String
   value     String
   timestamp DateTime @db.Timestamptz(6)
-  // source    String
 
   Run Run @relation(fields: [runId], references: [id])
 
   @@index([runId])
+}
+
+enum GoalCategory {
+  Process
+  Performance
+  Outcome
+}
+
+model Goal {
+  id           String       @id @default(uuid())
+  userId       String
+  goalCategory GoalCategory @map("goal_category")
+  description  String
+  target       Float?
+  startDate    DateTime?    @map("start_date")
+  endDate      DateTime?    @map("end_date")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  User User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Account {
@@ -158,4 +174,5 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Goal      Goal[]
 }

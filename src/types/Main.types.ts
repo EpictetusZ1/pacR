@@ -72,3 +72,6 @@ export type SRunAsProps = {
     distance: number
     pace: number
 }
+
+export type GoalType = "Process" | "Performance" | "Outcome"
+

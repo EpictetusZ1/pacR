@@ -118,11 +118,11 @@ const Run = async ({params}: { params: { runId: string } }) => {
 
     return (
         <div className="py-16 px-5 space-y-6 h-auto">
-            <h1 className="text-6xl font-black bg-gradient-to-br from-dBlue to-roseBonbon bg-clip-text text-transparent">Run Details</h1>
+            <h1 className="text-6xl font-black bg-gradient-to-br to-marian from-roseBonbon-500 bg-clip-text text-transparent">Run Details</h1>
             <div className="flex flex-col lg:flex-row sm:gap-y-5 md:justify-center md:items-center lg:justify-start mb-8 gap-x-6 w-full  ">
                 <div className={"w-full xl:w-1/3"}>
-                    <h2 className="text-2xl font-bold text-darkCyan-600 mb-4">General Info</h2>
-                    <div className="flex flex-col gap-2 text-black p-4 rounded-lg shadow">
+                    <h2 className="text-2xl font-bold text-marian mb-4">General Info</h2>
+                    <div className="flex flex-col gap-2 text-charcoal p-4 rounded-lg shadow">
                         <p><b>Run ID:</b> {data.id}</p>
                         <p><b>Date: </b>{formatDate(data.startEpoch)}</p>
                         <span className={"flex gap-x-3"}>
@@ -148,11 +148,11 @@ const Run = async ({params}: { params: { runId: string } }) => {
             </div>
 
             <div className={"py-4"}>
-                <h2 className="text-xl font-bold text-darkCyan-600 mb-4">Metrics</h2>
+                <h2 className="text-xl font-bold text-marian mb-4">Metrics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {data.summaries.map((summary: any) => (
                         <div key={summary.id}
-                             className="0 p-4 rounded-lg shadow-lg text-black">
+                             className="0 p-4 rounded-lg shadow-lg text-charcoal">
                             <p className="font-bold">{formatTags(summary.metricType)}</p>
                             <p className="text-gray-600">{formatTags(summary.summary)}: {summary.value.toFixed(2)}</p>
                             <p className="text-gray-600 text-xs pt-3">Source: {summary.source}</p>
@@ -161,7 +161,7 @@ const Run = async ({params}: { params: { runId: string } }) => {
                 </div>
             </div>
             <div className={"mt-4"}>
-                <h2 className="text-xl font-bold text-darkCyan-600 mb-4">Tags</h2>
+                <h2 className="text-xl font-bold text-marian mb-4">Tags</h2>
                 <TagsComponent tags={data.tags}/>
             </div>
         </div>
