@@ -20,14 +20,7 @@ export default function Home() {
             </Link>
             <GoalPicker/>
             {/*<Ai />*/}
-
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <div>
-                <SignInOut/>
-            </div>
+            <SignInOut/>
         </main>
     );
 }

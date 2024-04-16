@@ -1,5 +1,5 @@
 "use client"
-import { useState, } from "react";
+import { useRef, useState, } from "react";
 import { GoalType } from "@/types/Main.types";
 
 
@@ -14,15 +14,13 @@ interface DistanceValues {
     kilometers: number
 }
 
-// TODO: Convert this into a modal
+//  TODO: Refactor all this into a GoalPicker component, and/or subcomponents, this might be better as a page.
 const DefineGoal = ({goalType}: {goalType: GoalType}) => {
     const [description, setDescription] = useState<string>("")
     const [metric, setMetric] = useState<string>("")
     const [frequency, setFrequency] = useState<string>("")
     const [subGoalSelected, setSubGoalSelected] = useState<boolean>(false)
     const [subGoal, setSubGoal] = useState<string>(" ")
-    const [prefUnits, setPrefUnits] = useState<string>("miles")
-    // set all distance values form 1k to ultra
     const [distanceValues, setDistanceValues] = useState<DistanceValues[]>([
         {name: "1k", miles: 0.621371, kilometers: 1},
         {name: "5k", miles: 3.10686, kilometers: 5},
@@ -34,79 +32,82 @@ const DefineGoal = ({goalType}: {goalType: GoalType}) => {
         {name: "100 miles", miles: 100, kilometers: 160.934},
         {name: "Ultra", miles: 100, kilometers: 160.934}
     ])
+    const [distanceGoal, setDistanceGoal] = useState<string>("")
+    const [distanceGoalSelected, setDistanceGoalSelected] = useState<boolean>(false)
+    const [date, setDate] = useState("");
+    const dateInputRef = useRef(null)
+    const [startTrainingDate, setStartTrainingDate] = useState("")
+    const startTrainingDateInputRef = useRef(null)
 
 
-    // GOAL DEFINER
-    // for Outcome
-    // have a radio for outcome type: distance, race, time
-    // have a line of text that says run X in Y time
-    // or run a X by Y date
-
-    // for Performance
-    // have a radio for performance
-    // have a line of text that says improve X by Y
-    // for Process
-    // have a line of text that says run X times per week
-    // or run X times per month
-    // or run X times per year
-    // or run X times per day
-    // Current data - data which to send to api
-    // date picker for start date, end date
     return (
         <div className="flex flex-col items-center p-4 space-y-4">
             {goalType === "Outcome" && (
                 <>
                     <span className={"inline-flex items-center font-semibold text-xl"}>
-                    I would like to run a: &nbsp;
+                    I would like to run a &nbsp;
                         <select className={"border-2 rounded py-1 px-2 text-darkCyan-500 text-center"}
                                 name="subGoalId"
                                 value={subGoal}
                                 onChange={e => {
                                     setSubGoal(e.target.value)
                                     setSubGoalSelected(true)
-                                }}
-                        >
-                        <option value=" "></option>
-                        <option value="distance">Distance</option>
-                        <option value="race">Race</option>
-                        <option value="time">Time</option>
-                    </select>
-                </span>
+                                }}>
+                            <option value=" "></option>
+                            <option value="distance">Distance</option>
+                            <option value="race">Race</option>
+                            <option value="time">Time</option>
+                        </select>
+                    </span>
                     {subGoalSelected && (
-                        <span>
-                            <>
-                                {/*TODO: Need another input */}
-                                <span className={"inline-flex gap-2 items-center py-2"}>
-                                    <>
-                                        <input type="radio" name="distance" value="miles"
-                                               onClick={() => setPrefUnits("miles")}/>
-                                        <label>Miles</label>
-                                    </>
-                                    <>
-                                        <input type="radio" name="distance" value="kilometers"
-                                               onClick={() => setPrefUnits("kilometers")}/>
-                                        <label>Kilometers</label>
-                                    </>
-                                </span>
-                                  <hr className={"border-t-2 border-charcoal w-full py-1"}/>
-                            </>
-                            <div className={"flex flex-col gap-2"}>
-                                {distanceValues.map((distanceValue) => (
-                                    <div key={distanceValue.name} className={"text-lg"}>
-                                        <input type="radio" name="distance" value={distanceValue.name}
-                                               onClick={() => setMetric(distanceValue.name)}
-                                        />
-                                        <label className={"px-2"}>{distanceValue.name}</label>
-                                    </div>
-                                ))}
-                            </div>
+                        <span className={"inline-flex items-center font-semibold text-xl"}>
+                            of &nbsp;
+                            <select className={"border-2 rounded py-1 px-2 text-darkCyan-500 text-center"}
+                                    name="distanceGoal"
+                                    value={distanceGoal}
+                                    onChange={e => {
+                                        setDistanceGoal(e.target.value)
+                                        setDistanceGoalSelected(true)
+                                    }}>
+                                    {distanceValues.map((distanceValue) => (
+                                        <option key={distanceValue.name} value={distanceValue.name}>
+                                            {distanceValue.name}
+                                        </option>
+                                    ))}
+                            </select>
+                        </span>
+                    )}
+                    {distanceGoalSelected && (
+                        <span className={"inline-flex items-center font-semibold text-xl"}>
+                            <label htmlFor="date">by &nbsp;</label>
+                             <input
+                                 type="date"
+                                 onChange={(e) => setDate(e.target.value)}
+                                 ref={dateInputRef}
+                                 className="border-2 rounded p-1 text-darkCyan-500 text-center"
+                             />
+                             {/* Maybe just make this the input element? */}
+                             <p className={"font-medium py-2 px-2 hover:cursor-pointer"}>No date in mind</p>
+                             {/* TODO: Need a css module for this */}
+                             <input type={"checkbox"} id={"anytime"} name={"anytime"} value={"anytime"}/>
+                        </span>
+                    )}
+                    {date && (
+                        <span className={"inline-flex items-center font-semibold text-xl"}>
+                            <label htmlFor="startTrainingDate">I have been training since &nbsp;</label>
+                            <input
+                                type="date"
+                                onChange={e => setStartTrainingDate(e.target.value)}
+                                ref={startTrainingDateInputRef}
+                                className="border-2 rounded p-1 text-darkCyan-500 text-center"
+                            />
                         </span>
                     )}
                 </>
             )}
             {goalType === "Performance" && (
                 <div>
-                    <input
+                <input
                         type="text"
                         placeholder="Improve"
                         value={metric}
@@ -154,9 +155,6 @@ const GoalPicker = () => {
     const [showGoalTypes, setShowGoalTypes] = useState<boolean>(false)
     const goalTypes: GoalType[] = ["Process", "Performance", "Outcome"]
 
-
-
-
     return (
         <div>
             <div className="flex justify-center items-center gap-2 p-4">
@@ -183,24 +181,7 @@ const GoalPicker = () => {
             </div>
             {goalSelected && <DefineGoal goalType={goalSelected}/>}
         </div>
-    );
+    )
 }
 
 export default GoalPicker
-
-// <div>
-//     <input
-//         type="text"
-//         placeholder="Run"
-//         value={metric}
-//         onChange={e => setMetric(e.target.value)}
-//         className="input input-bordered w-full max-w-xs"
-//     />
-//     <input
-//         type="text"
-//         placeholder="in Y time or by Y date"
-//         value={description}
-//         onChange={e => setDescription(e.target.value)}
-//         className="input input-bordered w-full max-w-xs"
-//     />
-// </div>
