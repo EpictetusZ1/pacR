@@ -19,6 +19,7 @@ const config: Config = {
                 marian: "#2b4570",
                 aq: "#a4f9c8",
                 atomic: {
+                    300: "#FF4D6D",
                     400: "#bb1e42",
                     500: "#6B0F1A",
                     600: "#81000f",

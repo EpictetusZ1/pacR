@@ -114,7 +114,6 @@ model Moment {
 }
 
 enum GoalCategory {
-  Process
   Performance
   Outcome
 }
