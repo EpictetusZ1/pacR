@@ -1,6 +1,6 @@
 "use client"
-import { SetStateAction, useRef, useState, ChangeEvent, useEffect, } from "react";
-import { GoalType } from "@/types/Main.types";
+import { SetStateAction, useRef, useState, ChangeEvent, useEffect, } from "react"
+import { GoalType } from "@/types/Main.types"
 
 
 interface GoalConfig {
@@ -15,7 +15,7 @@ interface DistanceValues {
 }
 
 interface SelectProps {
-    value: string;
+    value: string
     options: Array<{ value: string; label: string }>
     onChange: (event: ChangeEvent<HTMLSelectElement>) => void
     placeholder: string
@@ -52,8 +52,11 @@ const Select = ({value, options, onChange, placeholder}: SelectProps) => (
 
 const distances: DistanceValues[] = [
     {name: "1k", miles: 0.621371, kilometers: 1},
+    {name: "1 mile", miles: 1, kilometers: 1.60934},
     {name: "5k", miles: 3.10686, kilometers: 5},
     {name: "10k", miles: 6.21371, kilometers: 10},
+    {name: "15k", miles: 9.32057, kilometers: 15},
+    {name: "10 miles", miles: 10, kilometers: 16.0934},
     {name: "Half Marathon", miles: 13.1, kilometers: 21.0826},
     {name: "Marathon", miles: 26.2, kilometers: 42.195},
     {name: "50k", miles: 31.0686, kilometers: 50},
@@ -82,14 +85,6 @@ const performanceGoalTypes = [
     { value: "speed", label: "Speed" },
 ]
 
-
-
-const initTimeGoal = {
-    time: 0,
-    distance: 0,
-    distanceMetric: "miles",
-}
-
 interface PerformanceGoalProps {
     metric: string
     value: string
@@ -98,22 +93,81 @@ interface PerformanceGoalProps {
     onValueChange: (e: TAChangeEvent) => void
     onUnitChange: (e: TAChangeEvent) => void
 }
+
+
+const initTimeGoal = {
+    time: 0,
+    distance: 0,
+    distanceMetric: "miles",
+}
+
+// Minutes and Seconds
+const hoursOptions = Array.from({ length: 24 }, (_, i) => ({ value: i.toString(), label: `${i} hour` }))
+const minutesOptions = Array.from({ length: 60 }, (_, i) => ({ value: i.toString(), label: `${i} minute` }))
+const secondsOptions = Array.from({ length: 60 }, (_, i) => ({ value: i.toString(), label: `${i} second` }))
+
+const TimeInput = () => {
+    const [hours, setHours] = useState("0")
+    const [minutes, setMinutes] = useState("0")
+    const [seconds, setSeconds] = useState("0")
+
+    const handleHoursChange = (e: TAChangeEvent) => setHours(e.target.value)
+    const handleMinutesChange = (e: TAChangeEvent) => setMinutes(e.target.value)
+    const handleSecondsChange = (e: TAChangeEvent) => setSeconds(e.target.value)
+
+    return (
+        <div className="flex justify-center gap-x-2 items-center my-4">
+            <label className="font-semibold text-xl">Set Time:</label>
+            <Select options={hoursOptions} value={hours} onChange={handleHoursChange} placeholder={" "} />
+            <Select options={minutesOptions} value={minutes} onChange={handleMinutesChange} placeholder={" "}/>
+            <Select options={secondsOptions} value={seconds} onChange={handleSecondsChange} placeholder={" "}/>
+        </div>
+    )
+}
+
+// function that takes in hrs, mins, and secs and returns total time in human readable form
+const getTime = (hours: number, minutes: number, seconds: number) => {
+    const hrs = hours > 0 ? `${hours}:` : ""
+    const mins = minutes < 10 ? `0${minutes}:` : `${minutes}:`
+    const secs = seconds < 10 ? `0${seconds}` : `${seconds}`
+    return `${hrs}${mins}${secs}`
+}
+
+const initGoalTime = {
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+}
+
 const PerformanceGoal = ({ metric, value, unit, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
-    const [timeGoal, setTimeGoal] = useState(initTimeGoal)
+    const [targetDistance, setTargetDistance] = useState("")
     const [unitOptions, setUnitOptions] = useState(paceUnits)
+    const [goalTime, setGoalTime] = useState(initGoalTime)
 
-    useEffect(() => {
-        switch (metric) {
-            case "time":
-                // timeGoal has two properties: time, and distance
-                break;
-            case "pace":
+    const onGoalTimeChange = (e: TAChangeEvent, type: "minutes" | "hours" | "seconds") => {
+        if (typeof e.target.value === "string") {
+            const targetVal = parseInt(e.target.value)
 
-                break;
-            default:
-                setUnitOptions([]);
+            switch (type) {//goalTime
+                // use getTime to format the time
+                case "hours":
+                    setGoalTime({...goalTime, hours: targetVal})
+                    break
+                case "minutes":
+                    setGoalTime({ ...goalTime, minutes: targetVal })
+                    break
+                case "seconds":
+                    setGoalTime({ ...goalTime, seconds: targetVal })
+                    break
+                default:
+                    break
+            }
         }
-    }, [metric]);
+        console.log(goalTime)
+    }
+
+    const onTargetDistanceChange = (e: TAChangeEvent) => setTargetDistance(e.target.value)
+    // TODO: Need to add different logic to handle all value types
 
     return (
         <div className="flex flex-col items-center p-4 space-y-4">
@@ -128,29 +182,66 @@ const PerformanceGoal = ({ metric, value, unit, onMetChange, onValueChange, onUn
             </span>
             {metric && (
                 <>
-                    <input
-                        type="text"
-                        placeholder={`Enter your target ${metric}`}
-                        value={value}
-                        onChange={onValueChange}
-                        className="border-2 rounded py-1 px-2 text-darkCyan-500 text-center"
-                    />
-                    {unitOptions.length > 0 && (
-                        <span className="inline-flex items-center font-semibold text-xl">
-                            in &nbsp;
-                            <Select
-                                options={[...unitOptions.map((unit) => ({ value: unit.units, label: unit.label }))]}
-                                onChange={onUnitChange}
-                                placeholder={`Select Unit for ${metric}`}
-                                value={unit}
+                    {metric === "time" ? (
+                        <>
+                            <span className="inline-flex items-center font-semibold text-xl">
+                               In &nbsp;
+                                <Select
+                                    options={distances.map((distance) => ({ value: distance.name, label: distance.name }))}
+                                    onChange={onTargetDistanceChange}
+                                    placeholder={"Select Distance"}
+                                    value={targetDistance}
+                                />
+                            </span>
+                            {value && ( <TimeInput /> )}
+                        </>
+                    ) : (
+                        <>
+                            <input
+                                type="text"
+                                placeholder={`Enter your target ${metric}`}
+                                value={value}
+                                onChange={onValueChange}
+                                className="border-2 rounded py-1 px-2 text-darkCyan-500 text-center"
                             />
-                        </span>
+                        </>
+                    )}
+                    {unitOptions.length > 0 && (
+                        <>
+                            <span className="inline-flex gap-x-3 items-center font-semibold text-xl">
+                                in &nbsp;
+                                <Select
+                                    options={hoursOptions}
+                                    onChange={(e) => onGoalTimeChange(e, "hours")}
+                                    placeholder={" "}
+                                    value={goalTime.hours.toString()}
+                                />
+                                <Select
+                                    options={minutesOptions}
+                                    onChange={(e) => onGoalTimeChange(e, "minutes")}
+                                    placeholder={" "}
+                                    value={goalTime.minutes.toString()}
+                                />
+                                <Select
+                                    options={secondsOptions}
+                                    onChange={(e) => onGoalTimeChange(e, "seconds")}
+                                    placeholder={" "}
+                                    value={goalTime.seconds.toString()}
+                                />
+                            </span>
+                            <span className={"flex items-center gap-x-2 border-2 px-4 py-2 border-black rounded"}>
+                                Target Goal Time:
+                                 <p className={"font-semibold text-center border-2 px-4 py-2 rounded"}>
+                                     {getTime(goalTime.hours, goalTime.minutes, goalTime.seconds)}
+                                 </p>
+                            </span>
+                        </>
                     )}
                 </>
             )}
         </div>
-    );
-};
+    )
+}
 
 const DefinePerformanceGoal = () => {
     const [metric, setMetric] = useState("")
@@ -170,32 +261,8 @@ const DefinePerformanceGoal = () => {
             onValueChange={handleValueChange}
             onUnitChange={handleUnitChange}
         />
-    );
-};
-// const PerformanceGoal = ({ metric, description, onMetricChange, onDescriptionChange }: PerformanceGoalProps) => {
-//     return (
-//         <div>
-//             <div className="flex flex-col items-center p-4 space-y-4">
-//                 <span className={"inline-flex items-center font-semibold text-xl"}>
-//                     I would like to improve my &nbsp;
-//                     <Select options={[
-//                         {value: "time", label: "Time"},
-//                         {value: "distance", label: "Distance"},
-//                         {value: "speed", label: "Speed"}
-//                     ]}
-//                             onChange={onMetricChange}
-//                             placeholder=" "
-//                             value={metric}
-//                     />
-//                 </span>
-//                 <input type="text" value={description} onChange={onDescriptionChange} className="border-2 rounded py-1 px-2 text-darkCyan-500 text-center" placeholder="by Y amount" />
-//             </div>
-//         </div>
-//
-//     )
-// }
-
-
+    )
+}
 
 const DefineGoal = ({goalType}: { goalType: GoalType }) => {
     const [date, setDate] = useState("")
