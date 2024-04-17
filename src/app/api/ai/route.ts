@@ -1,13 +1,6 @@
-// gpt-3.5-turbo-0125
-import OpenAI from "openai";
-import { NextApiRequest, NextApiResponse } from "next";
-import { NextRequest } from "next/server";
+import { openai } from "@/utils/openai";
 
-const openai = new OpenAI({
-    apiKey: process.env["OPENAI_API_KEY"], // This is the default and can be omitted
-})
-
-
+export const runtime = "edge"
 // const chatCompletion = await openai.chat.completions.create({
 //     messages: [{ role: "user", content: "Say this is a test" }],
 //     model: "gpt-3.5-turbo-0125"
@@ -26,9 +19,7 @@ const openai = new OpenAI({
 export async function GET(req: Request) {
     if (req.method === "POST") {
         // const { runsData, goalType } = req.body
-
         // const summary = `The user's average pace over the last two months is ${runsData.averagePace} minutes per kilometer, and their average distance is ${runsData.averageDistance} kilometers. Goal type: ${goalType}.`
-
         const summary = ""
 
         try {
