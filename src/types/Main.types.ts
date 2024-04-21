@@ -74,41 +74,34 @@ export type SRunAsProps = {
 }
 
 // BEGIN: Goal Types
+// Define Goal Types and SubGoal Types using string literal types
+export type GoalType = "Performance" | "Outcome";
+export type SubGoalType = "Time" | "Distance" | "Speed";
 
-export interface BaseGoal {
-    goalSet: boolean
-    description?: string
+// Base interface for all goals
+export interface Goal {
+    goalSet: boolean; // Indicates if a goal is set
+    description?: string; // Optional description of the goal
+    type: GoalType; // Type of the goal: Performance or Outcome
+    sGoalSet: boolean; // Indicates if a sub-goal is set
+    sGoalType?: SubGoalType; // Type of the sub-goal: Time, Distance, or Speed
+    subGoal?: SubGoal; // Optional sub-goal
 }
 
-export interface TimeGoal {
-    time: number
+// Define specific properties for sub-goals using a union type
+export type SubGoal =
+    | { type: "Time", time: number }
+    | { type: "Distance", distance: number }
+    | { type: "Speed", speed: number }; // Speed is specific to Performance goals
+
+// Extended interfaces for specific goal types
+export interface OutcomeGoal extends Goal {
+    date: Date; // Specific to outcome goals
 }
 
-export interface DistanceGoal {
-    distance: number
+export interface PerformanceGoal extends Goal {
+    // No additional fields needed, but could add performance-specific fields here if necessary
 }
 
-export interface SpeedGoal {
-    speed: number
-}
-
-export type GoalType = "Performance" | "Outcome"
-
-export type SubGoal = TimeGoal | DistanceGoal | SpeedGoal
-
-export interface OutcomeGoal extends BaseGoal {
-    type: "Outcome"
-    date: Date
-    subGoalSet: boolean
-    subGoalType: "Time" | "Distance"
-    subGoals: SubGoal
-}
-
-export interface PerformanceGoal extends BaseGoal {
-    type: "Performance"
-    subGoalSet: boolean
-    subGoalType: "Time" | "Distance" | "Speed"
-    subGoals: SubGoal
-}
-
-export type Goal = OutcomeGoal | PerformanceGoal
+// Use Goal as a union type for clarity
+export type AnyGoal = OutcomeGoal | PerformanceGoal;

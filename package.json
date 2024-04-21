@@ -13,12 +13,14 @@
     "@prisma/client": "^5.12.1",
     "@supabase/supabase-js": "^2.42.3",
     "d3": "^7.9.0",
+    "immer": "^10.0.4",
     "mapbox-gl": "^3.3.0",
     "next": "14.2.1",
     "next-auth": "^5.0.0-beta.16",
     "openai": "^4.33.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",

@@ -1,9 +1,7 @@
 "use client"
 import { SetStateAction, useRef, useState, ChangeEvent, useEffect, } from "react"
-import { GoalType, Goal } from "@/types/Main.types"
-import useGoalManager from "@/app/hooks/useGoalManager";
-
-
+import { GoalType, Goal, SubGoalType } from "@/types/Main.types"
+import { useGoalStore } from "@/store/goal";
 
 
 interface DistanceValues {
@@ -124,7 +122,6 @@ const initGoalTime = {
 
 interface DefinerProps {
     goal: Goal
-    goalMethods: any
 }
 
 const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
@@ -191,7 +188,7 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
     )
 }
 
-const DefinePerformanceGoal = ({goal, goalMethods}: DefinerProps) => {
+const DefinePerformanceGoal = ({goal}: DefinerProps) => {
     const [metric, setMetric] = useState("")
     const [value, setValue] = useState("")
     const [unit, setUnit] = useState("")
@@ -212,72 +209,7 @@ const DefinePerformanceGoal = ({goal, goalMethods}: DefinerProps) => {
     )
 }
 
-// ({ metric, value, unit, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
-const OutComeGoal = ({ metric, value, unit, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
-    const [targetDistance, setTargetDistance] = useState("")
-    const [unitOptions, setUnitOptions] = useState(paceUnits)
-    const [goalTime, setGoalTime] = useState<Time>(initGoalTime)
-
-    const onTargetDistanceChange = (e: TAChangeEvent) => setTargetDistance(e.target.value)
-
-    return (
-        <div className="flex flex-col items-center p-4 space-y-4">
-            <span className="inline-flex items-center font-semibold text-xl">
-                I would like to improve my &nbsp;
-                <Select
-                    options={performanceGoalTypes}
-                    onChange={onMetChange}
-                    placeholder="Select Metric"
-                    value={metric}
-                />
-            </span>
-            {metric && (
-                <>
-                    {metric !== "speed" ? (
-                        <>
-                            <span className="inline-flex items-center font-semibold text-xl">
-                               In &nbsp;
-                                <Select
-                                    options={distances.map((distance) => ({ value: distance.name, label: distance.name }))}
-                                    onChange={onTargetDistanceChange}
-                                    placeholder={"Select Distance"}
-                                    value={targetDistance}
-                                />
-                            </span>
-                        </>
-                    ) : (
-                        <>
-                            {/* Only for speed type outcome, should show target speed and either mile or km */}
-                            <input
-                                type="text"
-                                placeholder={`Enter your target ${metric}`}
-                                value={value}
-                                onChange={onValueChange}
-                                className="border-2 rounded py-1 px-2 text-darkCyan-500 text-center"
-                            />
-                        </>
-                    )}
-                    {unitOptions.length > 0 && (
-                        <>
-                            <span className="inline-flex gap-x-3 items-center font-semibold text-xl">
-                                in &nbsp;
-                                <TimeInput time={goalTime} setTime={setGoalTime} />
-                            </span>
-                            <span className={"flex items-center gap-x-2 border-2 px-4 py-2 border-black rounded"}>
-                                Target Goal Time:
-                                 <p className={"font-semibold text-center border-2 px-4 py-2 rounded"}>
-                                     { getTimeString(goalTime.hours, goalTime.minutes, goalTime.seconds) }
-                                 </p>
-                            </span>
-                        </>
-                    )}
-                </>
-            )}
-        </div>
-    )
-}
-
-const DefineOutcomeGoal = ({goal, goalMethods}: DefinerProps) => {
+const DefineOutcomeGoal = ({ goal }: DefinerProps) => {
     const [date, setDate] = useState("")
     const [distance, setDistance] = useState("")
     const [useDate, setUseDate] = useState(false)
@@ -285,6 +217,9 @@ const DefineOutcomeGoal = ({goal, goalMethods}: DefinerProps) => {
     const handleDistanceChange = (e: TAChangeEvent) => setDistance(e.target.value)
     const handleDateChange = (e: TAChangeEvent) => setDate(e.target.value)
     const toggleDateUsage = (e: TAChangeEvent) => setUseDate( e.target.value === "true")
+
+    const setSubGoalType = useGoalStore(state => state.setSubGoalType)
+
 
 
     return (
@@ -295,14 +230,14 @@ const DefineOutcomeGoal = ({goal, goalMethods}: DefinerProps) => {
                     {value: "Distance", label: "Distance"},
                     {value: "Time", label: "Time"}
                 ]}
-                        onChange={(e) => goalMethods.setSubGoalType(e.target.value)}
+                        onChange={(e) => setSubGoalType(e.target.value)}
                         placeholder=" "
-                        value={goal.subGoalType}
+                        value={goal.sGoalType!}
                 />
             </span>
-            {goal.subGoalSet && (
+            {goal.sGoalSet && (
                 <>
-                    {goal.subGoalType === "Distance" && (
+                    {goal.sGoalType === "Distance" && (
                         <>
                             <span className="inline-flex items-center font-semibold text-xl">
                                 of &nbsp;
@@ -317,7 +252,7 @@ const DefineOutcomeGoal = ({goal, goalMethods}: DefinerProps) => {
                                    onChange={toggleDateUsage}
                                    className={"w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"}/>
                             <label htmlFor="radio-2" className="ml-1 text-gray-500">By a specific date</label>
-                    </span>
+                            </span>
                             {useDate && (
                                 <DateInput label="by" onChange={handleDateChange}/>
                             )}
@@ -329,31 +264,27 @@ const DefineOutcomeGoal = ({goal, goalMethods}: DefinerProps) => {
     )
 }
 
-const DefineGoal = ({goalType}: { goalType: GoalType }) => {
-    const { goal, methods, setGoalType } = useGoalManager()
+const DefineGoal = ({ goal }: DefinerProps) => {
+    const setGoalType = useGoalStore(state => state.setGoalType)
 
     // TODO: This is handled locally in GoalPicker, lift that state up to the hook
     useEffect(() => {
-        if (!goal) {
-            setGoalType(goalType, { goalSet: true })
-        } else if (goal && goal.type !== goalType) {
-            setGoalType(goalType, { goalSet: true })
-        }
-    }, [goalType])
+
+    }, [])
 
     return (
         <div className="flex flex-col items-center p-4 space-y-4">
-            {goalType === "Outcome" && goal && <DefineOutcomeGoal goal={goal} goalMethods={methods} /> }
-            {goalType === "Performance" && goal && <DefinePerformanceGoal goal={goal} goalMethods={methods} /> }
+            {goal.type === "Outcome" && goal && <DefineOutcomeGoal goal={goal}  /> }
+            {goal.type === "Performance" && goal && <DefinePerformanceGoal goal={goal}  /> }
         </div>
     )
 }
 
-
 const GoalPicker = () => {
-    const [goalSelected, setGoalSelected] = useState<GoalType>()
     const [showGoalTypes, setShowGoalTypes] = useState<boolean>(false)
     const goalTypes: GoalType[] = ["Performance", "Outcome"]
+    const goal = useGoalStore(state => state.goal)
+    const setGoalType = useGoalStore(state => state.setGoalType)
 
     return (
         <div>
@@ -370,15 +301,13 @@ const GoalPicker = () => {
                         <button
                             key={goalType}
                             className="px-4 py-2 rounded bg-atomic-400 text-white font-bold hover:bg-atomic-500 transition duration-300"
-                            onClick={() => {
-                                setGoalSelected(goalType)
-                            }}>
+                            onClick={() => setGoalType(goalType)}>
                             {goalType}
                         </button>
                     ))
                 )}
             </div>
-            {goalSelected && <DefineGoal goalType={goalSelected}/>}
+            {goal && goal.goalSet && <DefineGoal goal={goal} />}
         </div>
     )
 }
