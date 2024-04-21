@@ -99,11 +99,15 @@ export type SubGoal = TimeGoal | DistanceGoal | SpeedGoal
 export interface OutcomeGoal extends BaseGoal {
     type: "Outcome"
     date: Date
+    subGoalSet: boolean
+    subGoalType: "Time" | "Distance"
     subGoals: SubGoal
 }
 
 export interface PerformanceGoal extends BaseGoal {
     type: "Performance"
+    subGoalSet: boolean
+    subGoalType: "Time" | "Distance" | "Speed"
     subGoals: SubGoal
 }
 
