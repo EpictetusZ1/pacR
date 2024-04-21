@@ -73,5 +73,38 @@ export type SRunAsProps = {
     pace: number
 }
 
-export type GoalType = "Process" | "Performance" | "Outcome"
+// BEGIN: Goal Types
 
+export interface BaseGoal {
+    goalSet: boolean
+    description?: string
+}
+
+export interface TimeGoal {
+    time: number
+}
+
+export interface DistanceGoal {
+    distance: number
+}
+
+export interface SpeedGoal {
+    speed: number
+}
+
+export type GoalType = "Performance" | "Outcome"
+
+export type SubGoal = TimeGoal | DistanceGoal | SpeedGoal
+
+export interface OutcomeGoal extends BaseGoal {
+    type: "Outcome"
+    date: Date
+    subGoals: SubGoal
+}
+
+export interface PerformanceGoal extends BaseGoal {
+    type: "Performance"
+    subGoals: SubGoal
+}
+
+export type Goal = OutcomeGoal | PerformanceGoal

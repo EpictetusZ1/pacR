@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import SignInOut from "@/components/Inputs/SignInOut/SignInOut";
 import Ai from "@/components/Inputs/Ai/Ai";
-import GoalPicker from "@/components/GoalPicker/GoalPicker";
 
 export default function Home() {
     return (
@@ -18,7 +17,6 @@ export default function Home() {
                   className="bg-darkCyan-500 hover:bg-darkCyan-400 text-white font-bold py-2 px-4 rounded">
                 Upload Runs
             </Link>
-            <GoalPicker/>
             {/*<Ai />*/}
             <SignInOut/>
         </main>

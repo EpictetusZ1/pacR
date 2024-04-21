@@ -1,6 +1,7 @@
 "use client"
 import { SetStateAction, useRef, useState, ChangeEvent, useEffect, } from "react"
 import { GoalType } from "@/types/Main.types"
+import useGoalManager from "@/app/hooks/useGoalManager";
 
 
 interface GoalConfig {
@@ -39,7 +40,6 @@ const DateInput = ({label, onChange}: { label: string, onChange: (e: any) => any
         </div>
     )
 }
-
 
 const Select = ({value, options, onChange, placeholder}: SelectProps) => (
     <select className="border-2 rounded py-1 px-2 text-darkCyan-500 text-center" onChange={onChange} value={value}>
@@ -94,43 +94,29 @@ interface PerformanceGoalProps {
     onUnitChange: (e: TAChangeEvent) => void
 }
 
-
-const initTimeGoal = {
-    time: 0,
-    distance: 0,
-    distanceMetric: "miles",
+interface Time {
+    hours: number
+    minutes: number
+    seconds: number
 }
 
-// Minutes and Seconds
-const hoursOptions = Array.from({ length: 24 }, (_, i) => ({ value: i.toString(), label: `${i} hour` }))
-const minutesOptions = Array.from({ length: 60 }, (_, i) => ({ value: i.toString(), label: `${i} minute` }))
-const secondsOptions = Array.from({ length: 60 }, (_, i) => ({ value: i.toString(), label: `${i} second` }))
+const timeUnits = ["hours", "minutes", "seconds"]
 
-const TimeInput = () => {
-    const [hours, setHours] = useState("0")
-    const [minutes, setMinutes] = useState("0")
-    const [seconds, setSeconds] = useState("0")
+const TimeInput = ({ time, setTime }:  {time: Time, setTime: any }) => (
+    timeUnits.map(unit => (
+        <Select
+            key={unit}
+            value={time[unit as keyof Time].toString()}
+            onChange={e => setTime({ ...time, [unit]: parseInt(e.target.value) })}
+            options={Array.from({ length: unit === "hours" ? 24 : 60 }, (_, i) => ({ value: i.toString(), label: `${i} ${unit}` }))}
+            placeholder={`0 ${unit}`}
+        />
+    ))
+)
 
-    const handleHoursChange = (e: TAChangeEvent) => setHours(e.target.value)
-    const handleMinutesChange = (e: TAChangeEvent) => setMinutes(e.target.value)
-    const handleSecondsChange = (e: TAChangeEvent) => setSeconds(e.target.value)
-
-    return (
-        <div className="flex justify-center gap-x-2 items-center my-4">
-            <label className="font-semibold text-xl">Set Time:</label>
-            <Select options={hoursOptions} value={hours} onChange={handleHoursChange} placeholder={" "} />
-            <Select options={minutesOptions} value={minutes} onChange={handleMinutesChange} placeholder={" "}/>
-            <Select options={secondsOptions} value={seconds} onChange={handleSecondsChange} placeholder={" "}/>
-        </div>
-    )
-}
-
-// function that takes in hrs, mins, and secs and returns total time in human readable form
-const getTime = (hours: number, minutes: number, seconds: number) => {
-    const hrs = hours > 0 ? `${hours}:` : ""
-    const mins = minutes < 10 ? `0${minutes}:` : `${minutes}:`
-    const secs = seconds < 10 ? `0${seconds}` : `${seconds}`
-    return `${hrs}${mins}${secs}`
+const getTimeString = (hours: number, minutes: number, seconds: number) => {
+    const pad = (num: number) => String(num).padStart(2, "0")
+    return `${hours}:${pad(minutes)}:${pad(seconds)}`
 }
 
 const initGoalTime = {
@@ -142,32 +128,9 @@ const initGoalTime = {
 const PerformanceGoal = ({ metric, value, unit, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
     const [targetDistance, setTargetDistance] = useState("")
     const [unitOptions, setUnitOptions] = useState(paceUnits)
-    const [goalTime, setGoalTime] = useState(initGoalTime)
-
-    const onGoalTimeChange = (e: TAChangeEvent, type: "minutes" | "hours" | "seconds") => {
-        if (typeof e.target.value === "string") {
-            const targetVal = parseInt(e.target.value)
-
-            switch (type) {//goalTime
-                // use getTime to format the time
-                case "hours":
-                    setGoalTime({...goalTime, hours: targetVal})
-                    break
-                case "minutes":
-                    setGoalTime({ ...goalTime, minutes: targetVal })
-                    break
-                case "seconds":
-                    setGoalTime({ ...goalTime, seconds: targetVal })
-                    break
-                default:
-                    break
-            }
-        }
-        console.log(goalTime)
-    }
+    const [goalTime, setGoalTime] = useState<Time>(initGoalTime)
 
     const onTargetDistanceChange = (e: TAChangeEvent) => setTargetDistance(e.target.value)
-    // TODO: Need to add different logic to handle all value types
 
     return (
         <div className="flex flex-col items-center p-4 space-y-4">
@@ -182,7 +145,7 @@ const PerformanceGoal = ({ metric, value, unit, onMetChange, onValueChange, onUn
             </span>
             {metric && (
                 <>
-                    {metric === "time" ? (
+                    {metric !== "speed" ? (
                         <>
                             <span className="inline-flex items-center font-semibold text-xl">
                                In &nbsp;
@@ -193,10 +156,10 @@ const PerformanceGoal = ({ metric, value, unit, onMetChange, onValueChange, onUn
                                     value={targetDistance}
                                 />
                             </span>
-                            {value && ( <TimeInput /> )}
                         </>
                     ) : (
                         <>
+                            {/* Only for speed type outcome, should show target speed and either mile or km */}
                             <input
                                 type="text"
                                 placeholder={`Enter your target ${metric}`}
@@ -210,29 +173,12 @@ const PerformanceGoal = ({ metric, value, unit, onMetChange, onValueChange, onUn
                         <>
                             <span className="inline-flex gap-x-3 items-center font-semibold text-xl">
                                 in &nbsp;
-                                <Select
-                                    options={hoursOptions}
-                                    onChange={(e) => onGoalTimeChange(e, "hours")}
-                                    placeholder={" "}
-                                    value={goalTime.hours.toString()}
-                                />
-                                <Select
-                                    options={minutesOptions}
-                                    onChange={(e) => onGoalTimeChange(e, "minutes")}
-                                    placeholder={" "}
-                                    value={goalTime.minutes.toString()}
-                                />
-                                <Select
-                                    options={secondsOptions}
-                                    onChange={(e) => onGoalTimeChange(e, "seconds")}
-                                    placeholder={" "}
-                                    value={goalTime.seconds.toString()}
-                                />
+                                <TimeInput time={goalTime} setTime={setGoalTime} />
                             </span>
                             <span className={"flex items-center gap-x-2 border-2 px-4 py-2 border-black rounded"}>
                                 Target Goal Time:
                                  <p className={"font-semibold text-center border-2 px-4 py-2 rounded"}>
-                                     {getTime(goalTime.hours, goalTime.minutes, goalTime.seconds)}
+                                     { getTimeString(goalTime.hours, goalTime.minutes, goalTime.seconds) }
                                  </p>
                             </span>
                         </>
@@ -265,18 +211,29 @@ const DefinePerformanceGoal = () => {
 }
 
 const DefineGoal = ({goalType}: { goalType: GoalType }) => {
+    const { goal, updateGoal, setGoalType } = useGoalManager();
+
+    useEffect(() => {
+        if (!goal) {
+            setGoalType(goalType, { goalSet: true })
+        } else if (goal && goal.type !== goalType) {
+            setGoalType(goalType, { goalSet: true })
+        }
+        console.log("goal type changed: ", goalType)
+    }, [goalType])
+
     const [date, setDate] = useState("")
     const [distance, setDistance] = useState("")
     const [subGoal, setSubGoal] = useState("")
-    const [metric, setMetric] = useState("")
-    const [description, setDescription] = useState("")
+    // const [metric, setMetric] = useState("")
+    // const [description, setDescription] = useState("")
     const [useDate, setUseDate] = useState(false)
 
     const handleDistanceChange = (e: TAChangeEvent) => setDistance(e.target.value)
     const handleDateChange = (e: TAChangeEvent) => setDate(e.target.value)
     const handleSubGoalChange = (e: TAChangeEvent) => setSubGoal(e.target.value)
-    const handleMetricChange = (e: TAChangeEvent) => setMetric(e.target.value)
-    const handleDescriptionChange = (e: TAChangeEvent) => setDescription(e.target.value)
+    // const handleMetricChange = (e: TAChangeEvent) => setMetric(e.target.value)
+    // const handleDescriptionChange = (e: TAChangeEvent) => setDescription(e.target.value)
     const toggleDateUsage = (e: TAChangeEvent) => setUseDate( e.target.value === "true")
 
     return (
@@ -287,7 +244,6 @@ const DefineGoal = ({goalType}: { goalType: GoalType }) => {
                         I would like to run a &nbsp;
                         <Select options={[
                             {value: "distance", label: "Distance"},
-                            {value: "race", label: "Race"},
                             {value: "time", label: "Time"}
                         ]}
                                 onChange={handleSubGoalChange}
