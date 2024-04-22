@@ -76,7 +76,7 @@ export type SRunAsProps = {
 // BEGIN: Goal Types
 // Define Goal Types and SubGoal Types using string literal types
 export type GoalType = "Performance" | "Outcome";
-export type SubGoalType = "Time" | "Distance" | "Speed";
+export type SubGoalType = "Time" | "Distance" | "Speed" | "Unset"
 
 // Base interface for all goals
 export interface Goal {
@@ -84,15 +84,21 @@ export interface Goal {
     description?: string; // Optional description of the goal
     type: GoalType; // Type of the goal: Performance or Outcome
     sGoalSet: boolean; // Indicates if a sub-goal is set
-    sGoalType?: SubGoalType; // Type of the sub-goal: Time, Distance, or Speed
+    sGoalType: SubGoalType; // Type of the sub-goal: Time, Distance, or Speed
     subGoal?: SubGoal; // Optional sub-goal
 }
 
 // Define specific properties for sub-goals using a union type
-export type SubGoal =
-    | { type: "Time", time: number }
-    | { type: "Distance", distance: number }
-    | { type: "Speed", speed: number, unit: "km/h" | "mi/h" }
+// export type SubGoal =
+//     | { type: "Time", time: number }
+//     | { type: "Distance", distance: number }
+//     | { type: "Speed", speed: number, unit: "km/h" | "mi/h" }
+
+export interface SubGoal {
+    type: SubGoalType;
+    value: number;
+    unit?: "km/h" | "mi/h";
+}
 
 // Extended interfaces for specific goal types
 export interface OutcomeGoal extends Goal {

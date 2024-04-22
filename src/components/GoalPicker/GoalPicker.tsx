@@ -1,6 +1,6 @@
 "use client"
 import { SetStateAction, useRef, useState, ChangeEvent, useEffect, } from "react"
-import { GoalType, Goal, SubGoalType } from "@/types/Main.types"
+import { GoalType, Goal, SubGoalType, SubGoal } from "@/types/Main.types"
 import { useGoalStore } from "@/store/goal";
 
 
@@ -75,9 +75,9 @@ const paceUnits = [
 ]
 
 const performanceGoalTypes = [
-    { value: "time", label: "Time" },
-    { value: "distance", label: "Distance" },
-    { value: "speed", label: "Speed" },
+    { value: "Time", label: "Time" },
+    { value: "Distance", label: "Distance" },
+    { value: "Speed", label: "Speed" },
 ]
 
 interface PerformanceGoalProps {
@@ -130,23 +130,28 @@ const timeToEpoch = (time: Time) => {
     return (hours * 60 * 60 + minutes * 60 + seconds) * 1000
 }
 
-const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
-    const [targetDistance, setTargetDistance] = useState("")
-    const [goalTime, setGoalTime] = useState<Time>(initGoalTime)
-    const [goalDate, setGoalDate] = useState("")
+const PerformanceGoal = () => {
+    const subGoal = useGoalStore(state => state.getSGoal())!
+    // const [targetDistance, setTargetDistance] = useState("")
+    // const [goalTime, setGoalTime] = useState<Time>(initGoalTime)
+    // const [paceUnit, setPaceUnit] = useState("mile")
 
-    const onTargetDistanceChange = (e: TAChangeEvent) => setTargetDistance(e.target.value)
+    // const handlePaceUnitChange = (e: TAChangeEvent) => setPaceUnit(e.target.value)
+    // const onTargetDistanceChange = (e: TAChangeEvent) => setTargetDistance(e.target.value)
+
     const updateSubGoal = useGoalStore(state => state.updateSubGoal)
+    const updateGoalDate = useGoalStore(state => state.updateOutcomeGoalDate)
 
-    const handleUpdateSubGoal = () => {
-        if (metric === "time") {
-            updateSubGoal({ type: "Time", time: timeToEpoch(goalTime) })
-        } else if (metric === "distance") {
-            updateSubGoal({ type: "Distance", distance: distances.find(distance => distance.name === targetDistance)!.miles })
-        } else if (metric === "speed") {
-            updateSubGoal({ type: "Speed", speed: parseFloat(value), unit: paceUnit === "miles" ? "mi/h" : "km/h" })
-        }
-    }
+    // const handleUpdateSubGoal = (value: any) => {
+    //     if (subGoal.type === "Time") {
+    //         updateSubGoal({ type: "Time", value: timeToEpoch(goalTime) })
+    //     } else if (subGoal.type === "Distance") {
+    //         updateSubGoal({ type: "Distance", value: distances.find(distance => distance.name === targetDistance)!.miles })
+    //     } else if (subGoal.type === "Speed") {
+    //         updateSubGoal({ type: "Speed", value: parseFloat(value), unit: paceUnit === "miles" ? "mi/h" : "km/h" })
+    //     }
+    // }
+
     const paceOptions = [
         {
             value: "mile",
@@ -159,16 +164,6 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
             label: "per Kilometer"
         }
     ]
-    const [paceUnit, setPaceUnit] = useState("mile")
-    const handlePaceUnitChange = (e: TAChangeEvent) => setPaceUnit(e.target.value)
-
-    useEffect(() => {
-        if (metric !== "" && value !== "") {
-            handleUpdateSubGoal()
-        }
-    }, [metric, targetDistance, goalTime, value])
-
-    console.log("goaldDate", goalDate)
 
     return (
         <div className="flex flex-col items-center p-4 space-y-4">
@@ -176,14 +171,14 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
                 I would like to improve my &nbsp;
                 <Select
                     options={performanceGoalTypes}
-                    onChange={onMetChange}
+                    onChange={(e) => updateSubGoal({ type: e.target.value as SubGoalType, value: 0 })}
                     placeholder="Select Metric"
-                    value={metric}
+                    value={subGoal.type}
                 />
             </span>
-            {metric && (
+            {(subGoal.type !== "Unset") && (
                 <>
-                    {metric !== "speed" && (
+                    {subGoal.type !== "Speed" && (
                         <>
                             <span className="inline-flex items-center font-semibold text-xl">
                                In &nbsp;
@@ -192,14 +187,14 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
                                         value: distance.name,
                                         label: distance.name
                                     }))}
-                                    onChange={onTargetDistanceChange}
+                                    onChange={(e) => updateSubGoal({ type: "Distance", value: distances.find(distance => distance.name === e.target.value)!.miles })}
                                     placeholder={"Select Distance"}
                                     value={targetDistance}
                                 />
                             </span>
                             <span className="inline-flex gap-x-3 items-center font-semibold text-xl">
                                 in &nbsp;
-                                <TimeInput time={goalTime} setTime={setGoalTime}/>
+                                <TimeInput time={goalTime} setTime={(e) => updateSubGoal({type: "Time", value: timeToEpoch(e.target.value)})}/>
                             </span>
                             <span className={"flex items-center gap-x-2 border-2 px-4 py-2 border-black rounded"}>
                                 Target Goal Time:
@@ -209,7 +204,7 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
                             </span>
                         </>
                     )}
-                    {metric === "speed" && (
+                    {subGoal.type === "Speed" && (
                         <>
                             <div className="inline-flex items-center font-semibold text-xl">
                                 Pace &nbsp;
@@ -221,7 +216,7 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
                                 <TimeInput time={goalTime} setTime={setGoalTime}/>
                             </div>
                             <div>
-                                <DateInput label={"By"} onChange={(e) => setGoalDate(e.target.value)} />
+                                <DateInput label={"By"} onChange={(e) => updateGoalDate(e.target.value)} />
                             </div>
                         </>
 
@@ -230,28 +225,6 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
                 </>
             )}
         </div>
-    )
-}
-
-const DefinePerformanceGoal = ({goal}: DefinerProps) => {
-    const [metric, setMetric] = useState("")
-    const [value, setValue] = useState("")
-    const [unit, setUnit] = useState("")
-
-    const handleMetricChange = (e: TAChangeEvent) => setMetric(e.target.value)
-    const handleValueChange = (e: TAChangeEvent) => setValue(e.target.value)
-    const handleUnitChange = (e: TAChangeEvent) => setUnit(e.target.value)
-
-
-    return (
-        <PerformanceGoal
-            metric={metric}
-            value={value}
-            unit={unit}
-            onMetChange={handleMetricChange}
-            onValueChange={handleValueChange}
-            onUnitChange={handleUnitChange}
-        />
     )
 }
 
@@ -312,7 +285,8 @@ const DefineOutcomeGoal = ({ goal }: DefinerProps) => {
 const GoalPicker = () => {
     const [showGoalTypes, setShowGoalTypes] = useState<boolean>(false)
     const goalTypes: GoalType[] = ["Performance", "Outcome"]
-    const goal = useGoalStore(state => state.goal)
+    const goal = useGoalStore(state => state.getGoal())
+    const subGoal = useGoalStore(state => state.getSGoal())
     const setGoalType = useGoalStore(state => state.setGoalType)
 
     return (
@@ -339,7 +313,7 @@ const GoalPicker = () => {
             {goal && goal.goalSet && (
                 <div className="flex flex-col items-center p-4 space-y-4">
                     {goal.type === "Outcome" && goal && <DefineOutcomeGoal goal={goal}  /> }
-                    {goal.type === "Performance" && goal && <DefinePerformanceGoal goal={goal}  /> }
+                    {goal.type === "Performance" && goal && <PerformanceGoal /> }
                 </div>
             )}
         </div>

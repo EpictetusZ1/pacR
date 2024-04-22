@@ -6,20 +6,28 @@ import { GoalType, Goal, OutcomeGoal, AnyGoal, PerformanceGoal, SubGoal, SubGoal
 
 interface IGoalStore  {
     goal: Goal | null,
+    subGoal: SubGoal | null,
     setGoal: (goal: Goal) => void,
+    getSGoal: () => SubGoal | null,
     getGoal: () => AnyGoal | null,
     updateGoal: (updates: Goal) => void,
     setGoalType: (type: GoalType) => void,
     setSubGoalType: (subGoalType: string) => void,
     updateSubGoal: (subGoal: SubGoal) => void,
+    updateOutcomeGoalDate: (date: Date) => void,
     // setSubGoal: (subGoal: SubGoal) => void,
 }
 
 
+const initSubGoal = {
+    type: "Unset",
+    value: 0
+} as SubGoal
 //  TODO: Persist for HMR
 export const useGoalStore = create<IGoalStore>()(
     immer((set, get) => ({
         goal: null,
+        subGoal: initSubGoal,
 
         setGoal: (goal) => {
             set(produce((draft) => draft.goal = goal ))
@@ -27,6 +35,10 @@ export const useGoalStore = create<IGoalStore>()(
 
         getGoal: () => {
             return get().goal
+        },
+
+        getSGoal: () => {
+            return get().subGoal
         },
 
         updateGoal: (updates) => {
@@ -50,23 +62,28 @@ export const useGoalStore = create<IGoalStore>()(
 
         setSubGoalType: (subGoalType) => {
             set(produce((draft) => {
-                if (draft.goal?.type === "Performance") {
-                    draft.goal = { ...draft.goal, subGoalType: subGoalType, sGoalSet: true } as PerformanceGoal
-                } else if (draft.goal?.type === "Outcome" && subGoalType !== "Speed") {
-                    draft.goal = { ...draft.goal, subGoalType: subGoalType, sGoalSet: true } as OutcomeGoal
+                // set draft.subGoal
+                if (subGoalType === "Time") {
+                    draft.subGoal = { type: "Time", value: 0 }
+                } else if (subGoalType === "Distance") {
+                    draft.subGoal = { type: "Distance", value: 0 }
+                } else if (subGoalType === "Speed") {
+                    draft.subGoal = { type: "Speed", value: 0 }
                 }
             }))
         },
 
         updateSubGoal: (subGoal) => {
             set(produce((draft) => {
-                if (!draft.goal.sGoalSet) {
-                    draft.goal = { ...draft.goal, sGoalSet: true }
-                }
-                if (draft.goal?.type === "Performance") {
-                    draft.goal = { ...draft.goal, subGoal: subGoal } as PerformanceGoal
-                } else if (draft.goal?.type === "Outcome") {
-                    draft.goal = { ...draft.goal, subGoal: subGoal } as OutcomeGoal
+                draft.subGoal = subGoal
+                draft.goal = { ...draft.goal, sGoalSet: true, subGoal: subGoal }
+            }))
+        },
+
+        updateOutcomeGoalDate: (date) => {
+            set(produce((draft) => {
+                if (draft.goal?.type === "Outcome") {
+                    draft.goal = { ...draft.goal, date: date } as OutcomeGoal
                 }
             }))
         }
