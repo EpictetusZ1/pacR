@@ -92,7 +92,7 @@ export interface Goal {
 export type SubGoal =
     | { type: "Time", time: number }
     | { type: "Distance", distance: number }
-    | { type: "Speed", speed: number }; // Speed is specific to Performance goals
+    | { type: "Speed", speed: number, unit: "km/h" | "mi/h" }
 
 // Extended interfaces for specific goal types
 export interface OutcomeGoal extends Goal {

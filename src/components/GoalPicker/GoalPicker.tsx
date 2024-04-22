@@ -124,12 +124,51 @@ interface DefinerProps {
     goal: Goal
 }
 
+// convert hours min seconds to epoch ms
+const timeToEpoch = (time: Time) => {
+    const { hours, minutes, seconds } = time
+    return (hours * 60 * 60 + minutes * 60 + seconds) * 1000
+}
+
 const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChange }: PerformanceGoalProps) => {
     const [targetDistance, setTargetDistance] = useState("")
-    const [unitOptions, setUnitOptions] = useState(paceUnits)
     const [goalTime, setGoalTime] = useState<Time>(initGoalTime)
+    const [goalDate, setGoalDate] = useState("")
 
     const onTargetDistanceChange = (e: TAChangeEvent) => setTargetDistance(e.target.value)
+    const updateSubGoal = useGoalStore(state => state.updateSubGoal)
+
+    const handleUpdateSubGoal = () => {
+        if (metric === "time") {
+            updateSubGoal({ type: "Time", time: timeToEpoch(goalTime) })
+        } else if (metric === "distance") {
+            updateSubGoal({ type: "Distance", distance: distances.find(distance => distance.name === targetDistance)!.miles })
+        } else if (metric === "speed") {
+            updateSubGoal({ type: "Speed", speed: parseFloat(value), unit: paceUnit === "miles" ? "mi/h" : "km/h" })
+        }
+    }
+    const paceOptions = [
+        {
+            value: "mile",
+            units: "mi/h",
+            label: "per Mile"
+        },
+        {
+            value: "km",
+            units: "km/h",
+            label: "per Kilometer"
+        }
+    ]
+    const [paceUnit, setPaceUnit] = useState("mile")
+    const handlePaceUnitChange = (e: TAChangeEvent) => setPaceUnit(e.target.value)
+
+    useEffect(() => {
+        if (metric !== "" && value !== "") {
+            handleUpdateSubGoal()
+        }
+    }, [metric, targetDistance, goalTime, value])
+
+    console.log("goaldDate", goalDate)
 
     return (
         <div className="flex flex-col items-center p-4 space-y-4">
@@ -144,44 +183,50 @@ const PerformanceGoal = ({ metric, value, onMetChange, onValueChange, onUnitChan
             </span>
             {metric && (
                 <>
-                    {metric !== "speed" ? (
+                    {metric !== "speed" && (
                         <>
                             <span className="inline-flex items-center font-semibold text-xl">
                                In &nbsp;
                                 <Select
-                                    options={distances.map((distance) => ({ value: distance.name, label: distance.name }))}
+                                    options={distances.map((distance) => ({
+                                        value: distance.name,
+                                        label: distance.name
+                                    }))}
                                     onChange={onTargetDistanceChange}
                                     placeholder={"Select Distance"}
                                     value={targetDistance}
                                 />
                             </span>
-                        </>
-                    ) : (
-                        <>
-                            {/* Only for speed type outcome, should show target speed and either mile or km */}
-                            <input
-                                type="text"
-                                placeholder={`Enter your target ${metric}`}
-                                value={value}
-                                onChange={onValueChange}
-                                className="border-2 rounded py-1 px-2 text-darkCyan-500 text-center"
-                            />
-                        </>
-                    )}
-                    {unitOptions.length > 0 && (
-                        <>
                             <span className="inline-flex gap-x-3 items-center font-semibold text-xl">
                                 in &nbsp;
-                                <TimeInput time={goalTime} setTime={setGoalTime} />
+                                <TimeInput time={goalTime} setTime={setGoalTime}/>
                             </span>
                             <span className={"flex items-center gap-x-2 border-2 px-4 py-2 border-black rounded"}>
                                 Target Goal Time:
                                  <p className={"font-semibold text-center border-2 px-4 py-2 rounded"}>
-                                     { getTimeString(goalTime.hours, goalTime.minutes, goalTime.seconds) }
+                                     {getTimeString(goalTime.hours, goalTime.minutes, goalTime.seconds)}
                                  </p>
                             </span>
                         </>
                     )}
+                    {metric === "speed" && (
+                        <>
+                            <div className="inline-flex items-center font-semibold text-xl">
+                                Pace &nbsp;
+                                <Select value={paceUnit} options={paceOptions} onChange={handlePaceUnitChange}
+                                        placeholder={"miles"}/>
+                            </div>
+                            <div className="inline-flex items-center font-semibold text-xl  gap-x-2">
+                                Of &nbsp;
+                                <TimeInput time={goalTime} setTime={setGoalTime}/>
+                            </div>
+                            <div>
+                                <DateInput label={"By"} onChange={(e) => setGoalDate(e.target.value)} />
+                            </div>
+                        </>
+
+                    )}
+
                 </>
             )}
         </div>
@@ -196,6 +241,7 @@ const DefinePerformanceGoal = ({goal}: DefinerProps) => {
     const handleMetricChange = (e: TAChangeEvent) => setMetric(e.target.value)
     const handleValueChange = (e: TAChangeEvent) => setValue(e.target.value)
     const handleUnitChange = (e: TAChangeEvent) => setUnit(e.target.value)
+
 
     return (
         <PerformanceGoal
@@ -219,8 +265,6 @@ const DefineOutcomeGoal = ({ goal }: DefinerProps) => {
     const toggleDateUsage = (e: TAChangeEvent) => setUseDate( e.target.value === "true")
 
     const setSubGoalType = useGoalStore(state => state.setSubGoalType)
-
-
 
     return (
         <>
@@ -264,21 +308,6 @@ const DefineOutcomeGoal = ({ goal }: DefinerProps) => {
     )
 }
 
-const DefineGoal = ({ goal }: DefinerProps) => {
-    const setGoalType = useGoalStore(state => state.setGoalType)
-
-    // TODO: This is handled locally in GoalPicker, lift that state up to the hook
-    useEffect(() => {
-
-    }, [])
-
-    return (
-        <div className="flex flex-col items-center p-4 space-y-4">
-            {goal.type === "Outcome" && goal && <DefineOutcomeGoal goal={goal}  /> }
-            {goal.type === "Performance" && goal && <DefinePerformanceGoal goal={goal}  /> }
-        </div>
-    )
-}
 
 const GoalPicker = () => {
     const [showGoalTypes, setShowGoalTypes] = useState<boolean>(false)
@@ -307,7 +336,12 @@ const GoalPicker = () => {
                     ))
                 )}
             </div>
-            {goal && goal.goalSet && <DefineGoal goal={goal} />}
+            {goal && goal.goalSet && (
+                <div className="flex flex-col items-center p-4 space-y-4">
+                    {goal.type === "Outcome" && goal && <DefineOutcomeGoal goal={goal}  /> }
+                    {goal.type === "Performance" && goal && <DefinePerformanceGoal goal={goal}  /> }
+                </div>
+            )}
         </div>
     )
 }

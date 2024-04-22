@@ -11,6 +11,7 @@ interface IGoalStore  {
     updateGoal: (updates: Goal) => void,
     setGoalType: (type: GoalType) => void,
     setSubGoalType: (subGoalType: string) => void,
+    updateSubGoal: (subGoal: SubGoal) => void,
     // setSubGoal: (subGoal: SubGoal) => void,
 }
 
@@ -40,9 +41,9 @@ export const useGoalStore = create<IGoalStore>()(
         setGoalType: (type) => {
             set(produce((draft) => {
                 if (type === "Performance") {
-                    draft.goal = { ...draft.goal, type: "Performance", subGoalSet: false, goalSet: true } as PerformanceGoal
+                    draft.goal = { ...draft.goal, type: "Performance", sGoalSet: false, goalSet: true } as PerformanceGoal
                 } else if (type === "Outcome") {
-                    draft.goal = { ...draft.goal, type: "Outcome", date: new Date(), subGoalSet: false, goalSet: true } as OutcomeGoal
+                    draft.goal = { ...draft.goal, type: "Outcome", date: new Date(), sGoalSet: false, goalSet: true } as OutcomeGoal
                 }
             }))
         },
@@ -50,13 +51,24 @@ export const useGoalStore = create<IGoalStore>()(
         setSubGoalType: (subGoalType) => {
             set(produce((draft) => {
                 if (draft.goal?.type === "Performance") {
-                    draft.goal = { ...draft.goal, subGoalType: subGoalType, subGoalSet: true } as PerformanceGoal
+                    draft.goal = { ...draft.goal, subGoalType: subGoalType, sGoalSet: true } as PerformanceGoal
                 } else if (draft.goal?.type === "Outcome" && subGoalType !== "Speed") {
-                    draft.goal = { ...draft.goal, subGoalType: subGoalType, subGoalSet: true } as OutcomeGoal
+                    draft.goal = { ...draft.goal, subGoalType: subGoalType, sGoalSet: true } as OutcomeGoal
                 }
             }))
         },
 
-
+        updateSubGoal: (subGoal) => {
+            set(produce((draft) => {
+                if (!draft.goal.sGoalSet) {
+                    draft.goal = { ...draft.goal, sGoalSet: true }
+                }
+                if (draft.goal?.type === "Performance") {
+                    draft.goal = { ...draft.goal, subGoal: subGoal } as PerformanceGoal
+                } else if (draft.goal?.type === "Outcome") {
+                    draft.goal = { ...draft.goal, subGoal: subGoal } as OutcomeGoal
+                }
+            }))
+        }
     }))
 )
